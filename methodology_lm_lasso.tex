@@ -1,0 +1,187 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath, amssymb}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\title{Methodology: Cherry Blossom Bloom-Date Prediction \\ Linear Model and LASSO}
+\author{Peak Bloom Prediction Workflow}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Objective}
+This document summarizes the modeling methodology used to predict annual cherry blossom peak bloom timing (day-of-year) for each location, with a focus on the standard \textbf{linear model (LM)} and a secondary \textbf{LASSO} model.
+
+\section{Data Sources and Initialization}
+The workflow loads and harmonizes:
+\begin{itemize}[leftmargin=*]
+    \item Bloom history data by location and year (peak bloom date and day-of-year).
+    \item Daily climate station data (temperature, precipitation, station metadata).
+\end{itemize}
+
+Key preprocessing decisions include:
+\begin{itemize}[leftmargin=*]
+    \item Restrict records to years $\geq 1973$.
+    \item Map NOAA stations to bloom locations.
+    \item Keep selected climate variables (temperature and precipitation inputs for the standard model pipeline).
+    \item Fill only short internal temperature gaps (less than 3 consecutive days) by linear interpolation.
+\end{itemize}
+
+\section{Feature Engineering for Standard Model}
+From daily climate records and bloom events, yearly pre-bloom predictors are constructed.
+
+\subsection{Altitude/Location Adjustment}
+For each location, station-to-bloom-site altitude difference is computed using:
+\begin{itemize}[leftmargin=*]
+    \item Station altitude from climate station elevation.
+    \item Bloom-site altitude from bloom history metadata.
+\end{itemize}
+A lapse-rate temperature correction is applied:
+\begin{equation}
+\Delta T = \gamma \cdot \frac{h_{\text{station}} - h_{\text{bloom}}}{1000}, \quad \gamma = 6.5\,^{\circ}\text{C}/\text{km}.
+\end{equation}
+Adjusted daily temperatures are:
+\begin{equation}
+T^{\text{adj}}_{\max} = T_{\max} + \Delta T, \qquad
+T^{\text{adj}}_{\min} = T_{\min} + \Delta T.
+\end{equation}
+
+\subsection{Pre-bloom Annual Aggregates}
+For each location-year, using all days from Jan 1 through bloom date:
+\begin{itemize}[leftmargin=*]
+    \item $\text{mean\_tmax\_adj\_prebloom}$
+    \item $\text{mean\_tmin\_adj\_prebloom}$
+    \item $\text{total\_prcp\_prebloom}$
+    \item Bloom-site altitude feature $\text{bloom\_alt\_m}$
+\end{itemize}
+The target is bloom day-of-year, $y = \text{bloom\_doy}$.
+
+\section{Train / Validation / Test Design}
+The standard model uses location-based domain split:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Training locations}: Kyoto, Washington DC, Liestal.
+    \item \textbf{Holdout locations}: all remaining locations.
+\end{itemize}
+
+For holdout locations, years are ordered chronologically and split into:
+\begin{itemize}[leftmargin=*]
+    \item first half $\rightarrow$ validation,
+    \item second half $\rightarrow$ test.
+\end{itemize}
+
+This tests geographic transferability while preserving temporal order within each holdout location.
+
+\section{Primary Model: Linear Regression (LM)}
+The baseline model is:
+\begin{equation}
+\text{bloom\_doy} = \beta_0 +
+\beta_1\,\text{mean\_tmin\_adj\_prebloom} +
+\beta_2\,\text{mean\_tmax\_adj\_prebloom} +
+\beta_3\,\text{total\_prcp\_prebloom} +
+\beta_4\,\text{bloom\_alt\_m} + \varepsilon.
+\end{equation}
+
+Evaluation metrics on validation/test:
+\begin{equation}
+\text{MAE} = \frac{1}{n}\sum_{i=1}^{n} |\hat y_i - y_i|,
+\qquad
+\text{RMSE} = \sqrt{\frac{1}{n}\sum_{i=1}^{n}(\hat y_i - y_i)^2}.
+\end{equation}
+
+\section{Secondary Model: LASSO}
+A LASSO regression is fit using the same predictors and target, with $\lambda$ selected by cross-validation on training data only.
+
+Optimization objective:
+\begin{equation}
+\min_{\beta_0,\beta} \left\{
+\frac{1}{2n}\sum_{i=1}^{n}(y_i - \beta_0 - x_i^\top\beta)^2 + \lambda\sum_{j=1}^{p}|\beta_j|
+\right\}.
+\end{equation}
+
+The selected model uses $\lambda_{\min}$ from CV and is scored on validation/test using the same MAE and RMSE metrics as LM.
+
+\section{2026 Forecasting and Uncertainty}
+\subsection{Feature Construction for 2026}
+For each location, the most recent available feature row is used as the predictor baseline and assigned year $=2026$.
+
+\subsection{LM 90\% Confidence Bounds}
+For the linear model, 90\% confidence intervals are produced directly from the regression prediction interval output for the mean response:
+\begin{itemize}[leftmargin=*]
+    \item predicted DOY,
+    \item lower/upper 90\% DOY bounds,
+    \item converted calendar-date bounds,
+    \item uncertainty width as $\pm$ days.
+\end{itemize}
+
+\subsection{LASSO 90\% Confidence Bounds}
+Because standard closed-form confidence bounds are not directly provided for penalized fits, uncertainty is estimated via bootstrap on training rows:
+\begin{enumerate}[leftmargin=*]
+    \item Resample training rows with replacement.
+    \item Refit LASSO at fixed $\lambda_{\min}$.
+    \item Predict 2026 DOY for each location.
+    \item Repeat (e.g., 500 replicates) and take empirical 5th/95th percentiles for a 90\% interval.
+\end{enumerate}
+The reported outputs include lower/upper bounds and $\pm$ day summaries.
+
+\section{Model Comparison Outputs}
+The process stores:
+\begin{itemize}[leftmargin=*]
+    \item Validation/test metrics by model (LM vs LASSO).
+    \item Prediction-level residual tables by split and model.
+    \item 2026 prediction tables for LM and LASSO.
+    \item A side-by-side 2026 comparison including DOY difference
+    $(\text{LASSO} - \text{LM})$.
+\end{itemize}
+
+\section{Outputs for Final Report}
+This section can be used directly in the final competition report to summarize model performance and 2026 predictions.
+
+\subsection{Suggested Performance Summary Table}
+Report validation and test metrics for both models:
+\begin{itemize}[leftmargin=*]
+    \item MAE (days),
+    \item RMSE (days),
+    \item split sample size $n$.
+\end{itemize}
+
+\subsection{2026 Prediction Table Template (LM vs LASSO)}
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{lcccccc}
+\toprule
+Location & LM Date & LM 90\% CI & LM $\pm$ Days & LASSO Date & LASSO 90\% CI & LASSO $\pm$ Days \\
+\midrule
+Kyoto &  &  &  &  &  &  \\
+Washington DC &  &  &  &  &  &  \\
+Liestal &  &  &  &  &  &  \\
+Vancouver &  &  &  &  &  &  \\
+New York City &  &  &  &  &  &  \\
+\bottomrule
+\end{tabular}
+\caption{Predicted 2026 peak bloom dates with 90\% confidence bounds and uncertainty width.}
+\label{tab:pred2026_lm_lasso}
+\end{table}
+
+\subsection{How to Populate the Table}
+Use the saved model artifacts as follows:
+\begin{itemize}[leftmargin=*]
+    \item LM values from \texttt{predictions\_2026}: \texttt{pred\_bloom\_date},
+    \texttt{conf\_low\_date\_90}, \texttt{conf\_high\_date\_90}, \texttt{conf\_pm\_days\_90}.
+    \item LASSO values from \texttt{predictions\_2026\_lasso}: \texttt{pred\_bloom\_date\_lasso},
+    \texttt{conf\_low\_date\_90\_lasso}, \texttt{conf\_high\_date\_90\_lasso}, \texttt{conf\_pm\_days\_90\_lasso}.
+    \item Optional model-difference column from
+    \texttt{predictions\_2026\_comparison}: \texttt{doy\_diff\_lasso\_minus\_linear}.
+\end{itemize}
+
+\section{Reproducibility Notes}
+\begin{itemize}[leftmargin=*]
+    \item A fixed random seed is used for splitting and bootstrap reproducibility.
+    \item All intermediate and final objects are saved as RData artifacts.
+    \item Modeling scripts are modularized into data prep, feature construction, and model fitting stages.
+\end{itemize}
+
+\end{document}
