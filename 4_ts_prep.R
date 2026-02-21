@@ -8,6 +8,7 @@ load(file.path("data", "climate_data.RData"))
 
 # ---- Climate data prep for time-series analysis ----
 CLIMATE_TS_OUTPUT_FILE <- file.path("data", "climate_ts_stationary.RData")
+ACF_FIGURES_DIR <- file.path("figures", "acf")
 STATIONARITY_ALPHA <- 0.05
 MAX_DIFFERENCE_ORDER <- 2
 MIN_ADF_OBS <- 10
@@ -176,6 +177,59 @@ climate_ts_stationary <- stationarity_results_nested %>%
         )
     })) %>%
     unnest(ts_points)
+
+# ---- ACF charts for stationary climate series ----
+dir.create(ACF_FIGURES_DIR, recursive = TRUE, showWarnings = FALSE)
+
+acf_plot_data <- climate_ts_stationary %>%
+    group_by(location, metric) %>%
+    arrange(year, .by_group = TRUE) %>%
+    summarize(
+        acf_tbl = list({
+            x <- value_stationary[!is.na(value_stationary)]
+            if (length(x) < 3) {
+                tibble(lag = numeric(0), acf = numeric(0))
+            } else {
+                lag_max <- min(20, length(x) - 1)
+                acf_obj <- stats::acf(x, lag.max = lag_max, plot = FALSE)
+                tibble(
+                    lag = as.numeric(acf_obj$lag),
+                    acf = as.numeric(acf_obj$acf)
+                ) %>%
+                    filter(lag > 0)
+            }
+        }),
+        .groups = "drop"
+    ) %>%
+    unnest(acf_tbl)
+
+acf_metric_plots <- acf_plot_data %>%
+    group_by(metric) %>%
+    group_split()
+
+purrr::walk(acf_metric_plots, \(metric_df) {
+    metric_name <- unique(metric_df$metric)
+    p <- ggplot(metric_df, aes(x = lag, y = acf)) +
+        geom_col(width = 0.7, fill = "steelblue") +
+        geom_hline(yintercept = 0, color = "gray40") +
+        facet_wrap(vars(location), scales = "free_y") +
+        labs(
+            title = sprintf("ACF of stationary %s by location", metric_name),
+            x = "Lag",
+            y = "Autocorrelation"
+        ) +
+        theme_minimal()
+
+    ggsave(
+        filename = file.path(ACF_FIGURES_DIR, sprintf("acf_%s.png", metric_name)),
+        plot = p,
+        width = 10,
+        height = 6,
+        dpi = 150
+    )
+})
+
+message(sprintf("Saved ACF charts to %s", ACF_FIGURES_DIR))
 
 save(
     climate_ts_yearly,
