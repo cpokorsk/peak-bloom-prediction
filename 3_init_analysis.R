@@ -14,11 +14,11 @@ CHERRY_BLOOM_FILES <- c(
 
 # Climate data files used to build the core `climate` dataset.
 CLIMATE_DATA_FILES <- c(
-    file.path("data","USW00013743.csv"),
-    file.path("data","CA001108395.csv"),
-    file.path("data","USW00014732.csv"),
-    file.path("data","SZ000001940.csv"),
-    file.path("data","JA000047759.csv")
+    file.path("data", "USW00013743.csv"),
+    file.path("data", "CA001108395.csv"),
+    file.path("data", "USW00014732.csv"),
+    file.path("data", "SZ000001940.csv"),
+    file.path("data", "JA000047759.csv")
 )
 
 # Load the bloom history data
@@ -31,8 +31,14 @@ climate_data <- CLIMATE_DATA_FILES %>%
     lapply(read.csv) %>%
     bind_rows()
 
-NOAA_DAILY_DATATYPES <- c("TMAX", "TMIN", "TAVG", "PRCP", "TSUN")
+NOAA_DAILY_DATATYPES <- c("TMAX", "TMIN", "TAVG", "PRCP", "SNOW", "SNWD")
 # Filter the climate data to include only the relevant datatypes
+RELEVANT_CLIMATE_COLUMNS <- c("STATION", "DATE", "NAME", "ELEVATION", NOAA_DAILY_DATATYPES)
+
 climate_data <- climate_data %>%
-    filter(DATATYPE %in% NOAA_DAILY_DATATYPES)
-    
+    select(any_of(RELEVANT_CLIMATE_COLUMNS))
+
+
+# Save the loaded data for use in the next steps
+save(bloom_history, file = file.path("data", "bloom_history.RData"))
+save(climate_data, file = file.path("data", "climate_data.RData"))
