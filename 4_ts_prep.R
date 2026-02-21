@@ -13,7 +13,7 @@ STATIONARITY_ALPHA <- 0.05
 MAX_DIFFERENCE_ORDER <- 2
 MIN_ADF_OBS <- 10
 
-REQUIRED_CLIMATE_COLUMNS <- c("location", "DATE", "TMAX", "TMIN", "TAVG", "PRCP", "SNOW", "SNWD")
+REQUIRED_CLIMATE_COLUMNS <- c("location", "DATE", "TMAX", "TMIN", "PRCP")
 missing_climate_cols <- setdiff(REQUIRED_CLIMATE_COLUMNS, names(climate_data))
 if (length(missing_climate_cols) > 0) {
     stop(
@@ -26,6 +26,15 @@ if (length(missing_climate_cols) > 0) {
 
 clean_noaa_numeric <- function(x) {
     readr::parse_number(as.character(x), na = c("", "NA"))
+}
+
+pick_primary_bloom_date <- function(x) {
+    x_non_na <- x[!is.na(x)]
+    if (length(x_non_na) == 0) {
+        as.Date(NA)
+    } else {
+        min(x_non_na)
+    }
 }
 
 make_stationary <- function(values, max_diff = MAX_DIFFERENCE_ORDER,
@@ -51,7 +60,9 @@ make_stationary <- function(values, max_diff = MAX_DIFFERENCE_ORDER,
 
         adf_p_value <- tryCatch(
             {
-                tseries::adf.test(current_values, alternative = "stationary")$p.value
+                suppressWarnings(
+                    tseries::adf.test(current_values, alternative = "stationary")$p.value
+                )
             },
             error = function(e) {
                 NA_real_
@@ -91,21 +102,24 @@ climate_ts_yearly <- climate_data %>%
         DATE = as.Date(DATE),
         TMAX = clean_noaa_numeric(TMAX) / 10,
         TMIN = clean_noaa_numeric(TMIN) / 10,
-        TAVG = clean_noaa_numeric(TAVG) / 10,
         PRCP = clean_noaa_numeric(PRCP) / 10,
-        SNOW = clean_noaa_numeric(SNOW),
-        SNWD = clean_noaa_numeric(SNWD)
     ) %>%
-    select(location, DATE, TMAX, TMIN, TAVG, PRCP, SNOW, SNWD) %>%
+    select(location, DATE, TMAX, TMIN, PRCP) %>%
+    mutate(year = lubridate::year(DATE)) %>%
     filter(!is.na(location), !is.na(DATE)) %>%
     inner_join(
         bloom_history %>%
             mutate(bloom_date = as.Date(bloom_date)) %>%
-            select(location, year, bloom_date),
-        by = "location"
+            group_by(location, year) %>%
+            summarize(
+                bloom_date = pick_primary_bloom_date(bloom_date),
+                .groups = "drop"
+            ) %>%
+            filter(!is.na(bloom_date)),
+        by = c("location", "year"),
+        relationship = "many-to-one"
     ) %>%
     filter(
-        lubridate::year(DATE) == year,
         DATE <= bloom_date
     ) %>%
     group_by(location, year) %>%
@@ -113,10 +127,7 @@ climate_ts_yearly <- climate_data %>%
         bloom_date = first(bloom_date),
         mean_tmax_prebloom = mean(TMAX, na.rm = TRUE),
         mean_tmin_prebloom = mean(TMIN, na.rm = TRUE),
-        mean_tavg_prebloom = mean(TAVG, na.rm = TRUE),
         total_prcp_prebloom = sum(PRCP, na.rm = TRUE),
-        total_snow_prebloom = sum(SNOW, na.rm = TRUE),
-        mean_snwd_prebloom = mean(SNWD, na.rm = TRUE),
         n_daily_obs = n(),
         .groups = "drop"
     ) %>%
@@ -127,10 +138,7 @@ climate_ts_long <- climate_ts_yearly %>%
         cols = c(
             mean_tmax_prebloom,
             mean_tmin_prebloom,
-            mean_tavg_prebloom,
             total_prcp_prebloom,
-            total_snow_prebloom,
-            mean_snwd_prebloom
         ),
         names_to = "metric",
         values_to = "value"
