@@ -1,0 +1,332 @@
+location,country_code,species,lat,long,alt,first_year,last_year,observation_count,source_files
+vancouver,CA,Prunus x yedoensis,49.2237,-123.1636,24.0,2022,2025,4,vancouver.csv
+Switzerland/Adelboden,CH,Prunus avium,46.492022,7.561067,1350.0,1965,2023,56,meteoswiss.csv
+Switzerland/Alchenflüh ,CH,Prunus avium,47.079619,7.5848,513.0,2013,2023,11,meteoswiss.csv
+Switzerland/Altdorf,CH,Prunus avium,46.872614,8.658569,470.0,1976,2023,42,meteoswiss.csv
+Switzerland/Andeer,CH,Prunus avium,46.600961,9.422614,985.0,1953,2022,58,meteoswiss.csv
+Switzerland/Appenzell,CH,Prunus avium,47.331994,9.415403,775.0,1970,2023,54,meteoswiss.csv
+Switzerland/Aurigeno,CH,Prunus avium,46.236078,8.725292,350.0,1956,2022,55,meteoswiss.csv
+Switzerland/Azmoos,CH,Prunus avium,47.076869,9.479753,480.0,1980,2023,44,meteoswiss.csv
+Switzerland/Ballens,CH,Prunus avium,46.554378,6.374472,700.0,2016,2022,7,meteoswiss.csv
+Switzerland/Basel-Binningen,CH,Prunus avium,47.548594,7.582372,315.0,1966,2023,50,meteoswiss.csv
+Switzerland/Bauma,CH,Prunus avium,47.364822,8.881672,640.0,1957,2023,52,meteoswiss.csv
+Switzerland/Bellelay,CH,Prunus avium,47.265314,7.165786,930.0,1990,2023,26,meteoswiss.csv
+Switzerland/Biel,CH,Prunus avium,47.151194,7.254139,490.0,1952,2023,46,meteoswiss.csv
+Switzerland/Birmensdorf,CH,Prunus avium,47.342472,8.444342,500.0,1984,2023,40,meteoswiss.csv
+Switzerland/Blonay,CH,Prunus avium,46.464014,6.891869,600.0,1988,2023,30,meteoswiss.csv
+Switzerland/Bondo GR,CH,Prunus avium,46.337594,9.555908,825.0,1970,2023,54,meteoswiss.csv
+Switzerland/Boudry,CH,Prunus avium,46.949492,6.834386,450.0,2004,2023,20,meteoswiss.csv
+Switzerland/Brusio-Piazzo,CH,Prunus avium,46.265447,10.115375,850.0,1956,2023,58,meteoswiss.csv
+Switzerland/Buchs,CH,Prunus avium,47.158028,9.469656,450.0,1999,2023,24,meteoswiss.csv
+Switzerland/Cartigny,CH,Prunus avium,46.177483,6.014089,400.0,1954,2023,63,meteoswiss.csv
+Switzerland/Cernier,CH,Prunus avium,47.098392,6.986644,900.0,1968,2008,34,meteoswiss.csv
+Switzerland/Cevio-Cavergno,CH,Prunus avium,46.315447,8.598925,430.0,1966,2022,55,meteoswiss.csv
+Switzerland/Changins,CH,Prunus avium,46.395917,6.229419,435.0,1965,2023,56,meteoswiss.csv
+Switzerland/Chardonne,CH,Prunus avium,46.474036,6.835272,500.0,1983,2020,32,meteoswiss.csv
+Switzerland/Chaumont,CH,Prunus avium,47.049108,6.978031,1150.0,1994,2023,30,meteoswiss.csv
+Switzerland/Chur,CH,Prunus avium,46.868244,9.5419,640.0,1962,2023,55,meteoswiss.csv
+Switzerland/Comprovasco / Motto,CH,Prunus avium,46.442531,8.950197,500.0,1989,2023,31,meteoswiss.csv
+Switzerland/Couvet,CH,Prunus avium,46.9213,6.637761,750.0,1954,2023,67,meteoswiss.csv
+Switzerland/Davos-Dorf,CH,Prunus avium,46.808986,9.836586,1560.0,1964,2023,3,meteoswiss.csv
+Switzerland/Diessenhofen,CH,Prunus avium,47.690281,8.744,410.0,1971,2023,53,meteoswiss.csv
+Switzerland/Disentis,CH,Prunus avium,46.699461,8.850803,1200.0,1956,2023,60,meteoswiss.csv
+Switzerland/Domat / Ems,CH,Prunus avium,46.834311,9.457442,580.0,1970,2023,54,meteoswiss.csv
+Switzerland/Dornach,CH,Prunus avium,47.481642,7.611114,300.0,1998,2023,23,meteoswiss.csv
+Switzerland/Döttingen,CH,Prunus avium,47.568867,8.249947,350.0,1975,2023,41,meteoswiss.csv
+Switzerland/Echandens,CH,Prunus avium,46.537211,6.543094,422.0,2021,2023,3,meteoswiss.csv
+Switzerland/Edlibach,CH,Prunus avium,47.179358,8.573208,750.0,1971,2023,45,meteoswiss.csv
+Switzerland/Einsiedeln,CH,Prunus avium,47.131972,8.748844,910.0,1975,1994,20,meteoswiss.csv
+Switzerland/Elm,CH,Prunus avium,46.921942,9.172731,1000.0,1956,2023,66,meteoswiss.csv
+Switzerland/Enges,CH,Prunus avium,47.056436,7.012192,820.0,1951,2023,68,meteoswiss.csv
+Switzerland/Entlebuch,CH,Prunus avium,46.987397,8.068953,765.0,1958,2023,65,meteoswiss.csv
+Switzerland/Eschen-Boja,CH,Prunus avium,47.218989,9.520044,580.0,1973,2022,47,meteoswiss.csv
+Switzerland/Escholzmatt,CH,Prunus avium,46.898653,7.932344,910.0,1956,2023,67,meteoswiss.csv
+Switzerland/Estavayer-le-Lac,CH,Prunus avium,46.841619,6.848706,450.0,1989,2023,30,meteoswiss.csv
+Switzerland/Faido,CH,Prunus avium,46.477881,8.800878,715.0,2018,2020,2,meteoswiss.csv
+Switzerland/Fanas,CH,Prunus avium,46.983531,9.660289,910.0,1970,2007,31,meteoswiss.csv
+Switzerland/Fiesch,CH,Prunus avium,46.400261,8.127792,1100.0,1951,2023,63,meteoswiss.csv
+Switzerland/Flawil,CH,Prunus avium,47.415283,9.182167,630.0,1952,2023,53,meteoswiss.csv
+Switzerland/Frauenfeld,CH,Prunus avium,47.560647,8.887883,405.0,1992,2023,31,meteoswiss.csv
+Switzerland/Gadmen,CH,Prunus avium,46.736853,8.351842,1205.0,1956,2023,49,meteoswiss.csv
+Switzerland/Grellingen,CH,Prunus avium,47.441186,7.597728,350.0,2004,2017,14,meteoswiss.csv
+Switzerland/Grossdietwil,CH,Prunus avium,47.166089,7.887067,610.0,1963,2009,44,meteoswiss.csv
+Switzerland/Gryon,CH,Prunus avium,46.274817,7.065661,1100.0,1956,2007,50,meteoswiss.csv
+Switzerland/Grüsch,CH,Prunus avium,46.983786,9.64715,650.0,1970,2023,42,meteoswiss.csv
+Switzerland/Gstaad,CH,Prunus avium,46.438214,7.269478,1100.0,2004,2022,19,meteoswiss.csv
+Switzerland/Gundetswil,CH,Prunus avium,47.536489,8.819919,460.0,1987,2010,23,meteoswiss.csv
+Switzerland/Hallau,CH,Prunus avium,47.698183,8.457489,430.0,1979,2023,45,meteoswiss.csv
+Switzerland/Hard b. Weinfelden,CH,Prunus avium,47.567569,9.125747,450.0,1992,2023,24,meteoswiss.csv
+Switzerland/Heiden,CH,Prunus avium,47.442925,9.533178,800.0,1975,2023,47,meteoswiss.csv
+Switzerland/Herzogenbuchsee,CH,Prunus avium,47.18465,7.702511,450.0,1969,2023,41,meteoswiss.csv
+Switzerland/Hochdorf,CH,Prunus avium,47.166514,8.28935,490.0,2007,2023,17,meteoswiss.csv
+Switzerland/Horgen,CH,Prunus avium,47.265269,8.582169,450.0,1966,2023,55,meteoswiss.csv
+Switzerland/Höfen,CH,Prunus avium,46.717125,7.569428,720.0,1992,2023,27,meteoswiss.csv
+Switzerland/Jegenstorf II,CH,Prunus avium,47.049108,7.507072,525.0,2008,2023,14,meteoswiss.csv
+Switzerland/Jenaz,CH,Prunus avium,46.928553,9.710558,800.0,1970,2023,52,meteoswiss.csv
+Switzerland/Kandersteg,CH,Prunus avium,46.495636,7.671325,1175.0,2023,2023,1,meteoswiss.csv
+Switzerland/L'Abergement,CH,Prunus avium,46.756178,6.490211,660.0,1956,2023,64,meteoswiss.csv
+Switzerland/La BrÈvine,CH,Prunus avium,46.982014,6.599133,1050.0,1997,2023,10,meteoswiss.csv
+Switzerland/La Valsainte,CH,Prunus avium,46.648728,7.182475,1050.0,1956,2023,39,meteoswiss.csv
+Switzerland/Langnau i.E.,CH,Prunus avium,46.939633,7.806425,744.0,2015,2023,8,meteoswiss.csv
+Switzerland/Lanterswil,CH,Prunus avium,47.514847,9.098194,570.0,1992,2010,18,meteoswiss.csv
+Switzerland/Laufenburg,CH,Prunus avium,47.561031,8.063136,330.0,1970,2023,54,meteoswiss.csv
+Switzerland/Le Locle,CH,Prunus avium,47.047992,6.754314,1020.0,1956,2023,38,meteoswiss.csv
+Switzerland/Le SÈpey,CH,Prunus avium,46.365406,7.065819,1265.0,1995,2020,12,meteoswiss.csv
+Switzerland/Les Diablerets,CH,Prunus avium,46.355131,7.118014,1100.0,1967,2007,22,meteoswiss.csv
+Switzerland/Les Plans-sur-Bex,CH,Prunus avium,46.256639,7.092033,1100.0,1957,2023,43,meteoswiss.csv
+Switzerland/Les Ponts-de-Martel,CH,Prunus avium,47.002858,6.728592,1120.0,1951,2023,70,meteoswiss.csv
+Switzerland/Les Rangiers,CH,Prunus avium,47.381992,7.215775,865.0,1978,2023,40,meteoswiss.csv
+Switzerland/Leysin,CH,Prunus avium,46.340108,7.009622,1250.0,1967,2023,55,meteoswiss.csv
+Switzerland/Leytron,CH,Prunus avium,46.18625,7.21845,480.0,1976,2023,40,meteoswiss.csv
+Switzerland/Liddes,CH,Prunus avium,45.988267,7.180528,1350.0,1951,2022,30,meteoswiss.csv
+Switzerland/Liestal,CH,Prunus avium,47.481403,7.730519,350.0,1952,2023,39,meteoswiss.csv
+Switzerland/Linthal,CH,Prunus avium,46.915883,8.993658,695.0,1970,2023,52,meteoswiss.csv
+Switzerland/Locarno,CH,Prunus avium,46.169278,8.798214,200.0,1966,2023,57,meteoswiss.csv
+Switzerland/Locarno-Monti,CH,Prunus avium,46.172556,8.787417,370.0,1991,2023,33,meteoswiss.csv
+Switzerland/Longirod,CH,Prunus avium,46.498772,6.26595,900.0,1959,2023,57,meteoswiss.csv
+Switzerland/Luzern,CH,Prunus avium,47.062769,8.342442,580.0,1975,2023,49,meteoswiss.csv
+Switzerland/Martina,CH,Prunus avium,46.884997,10.464608,1050.0,1976,2023,46,meteoswiss.csv
+Switzerland/Meiringen I,CH,Prunus avium,46.75275,8.137867,900.0,1956,2000,21,meteoswiss.csv
+Switzerland/Mellingen,CH,Prunus avium,47.420981,8.273286,356.0,2022,2023,2,meteoswiss.csv
+Switzerland/Merishausen,CH,Prunus avium,47.763636,8.612414,540.0,1959,2023,65,meteoswiss.csv
+Switzerland/Morgins VS,CH,Prunus avium,46.2415,6.850589,1380.0,1977,2011,29,meteoswiss.csv
+Switzerland/Moudon,CH,Prunus avium,46.646331,6.777689,600.0,1966,2022,53,meteoswiss.csv
+Switzerland/Moutier,CH,Prunus avium,47.279386,7.385775,530.0,1963,2023,58,meteoswiss.csv
+Switzerland/Mugena,CH,Prunus avium,46.046497,8.888964,784.0,2020,2023,4,meteoswiss.csv
+Switzerland/Murg,CH,Prunus avium,47.108222,9.217372,500.0,1952,2023,72,meteoswiss.csv
+"Switzerland/Muri, AG",CH,Prunus avium,47.265317,8.332283,550.0,1975,2023,46,meteoswiss.csv
+Switzerland/Möhlin,CH,Prunus avium,47.561983,7.850547,305.0,1956,2014,43,meteoswiss.csv
+Switzerland/Neuch‚tel,CH,Prunus avium,47.000444,6.935714,550.0,2015,2023,9,meteoswiss.csv
+Switzerland/Neuhausen,CH,Prunus avium,47.681939,8.615533,435.0,1974,2023,49,meteoswiss.csv
+Switzerland/Näfels,CH,Prunus avium,47.092389,9.071936,440.0,1970,2021,43,meteoswiss.csv
+Switzerland/Oberehrendingen,CH,Prunus avium,47.481914,8.332208,490.0,1975,2023,49,meteoswiss.csv
+Switzerland/Oberlangenegg,CH,Prunus avium,46.808222,7.716267,910.0,1978,2023,37,meteoswiss.csv
+Switzerland/Oeschberg,CH,Prunus avium,47.126578,7.613264,485.0,1962,2017,43,meteoswiss.csv
+Switzerland/Olivone,CH,Prunus avium,46.527333,8.932936,894.0,1978,1987,10,meteoswiss.csv
+Switzerland/Orbe / Bochuz,CH,Prunus avium,46.722633,6.536061,485.0,1953,2022,52,meteoswiss.csv
+Switzerland/Orvin,CH,Prunus avium,47.157753,7.214464,700.0,1951,2023,64,meteoswiss.csv
+Switzerland/Osogna,CH,Prunus avium,46.311967,8.987064,276.0,2017,2023,7,meteoswiss.csv
+Switzerland/Osterfingen,CH,Prunus avium,47.656878,8.490242,410.0,1977,2021,45,meteoswiss.csv
+Switzerland/Payerne,CH,Prunus avium,46.811581,6.942469,490.0,2018,2023,5,meteoswiss.csv
+Switzerland/Posieux,CH,Prunus avium,46.761672,7.098294,680.0,1951,2023,53,meteoswiss.csv
+Switzerland/Prato-Sornico,CH,Prunus avium,46.394025,8.655608,750.0,1957,2023,63,meteoswiss.csv
+Switzerland/Rafz,CH,Prunus avium,47.620414,8.542733,515.0,1952,2023,70,meteoswiss.csv
+Switzerland/Rancate,CH,Prunus avium,45.870208,8.967242,353.0,2008,2023,14,meteoswiss.csv
+"Switzerland/Raperswilen, TG",CH,Prunus avium,47.632486,9.048642,595.0,1992,2016,25,meteoswiss.csv
+"Switzerland/Reinach, BL",CH,Prunus avium,47.493131,7.589494,303.0,2018,2023,6,meteoswiss.csv
+Switzerland/Ried / Frutigen,CH,Prunus avium,46.570078,7.619381,1090.0,2017,2023,4,meteoswiss.csv
+Switzerland/Romanshorn,CH,Prunus avium,47.563608,9.376172,405.0,1978,2008,30,meteoswiss.csv
+Switzerland/Rorschach,CH,Prunus avium,47.472492,9.494931,450.0,1977,2023,46,meteoswiss.csv
+Switzerland/Sagno TI,CH,Prunus avium,45.857811,9.033789,670.0,1987,2023,36,meteoswiss.csv
+Switzerland/Sargans II,CH,Prunus avium,47.050589,9.439256,480.0,1956,2023,68,meteoswiss.csv
+Switzerland/Sarnen,CH,Prunus avium,46.894217,8.252236,500.0,1954,2023,69,meteoswiss.csv
+Switzerland/Schiers,CH,Prunus avium,46.965036,9.685814,800.0,1951,2023,51,meteoswiss.csv
+Switzerland/Schönenwerd,CH,Prunus avium,47.365283,7.999019,450.0,1970,2023,53,meteoswiss.csv
+Switzerland/Scuol,CH,Prunus avium,46.794394,10.296356,1240.0,1987,2023,35,meteoswiss.csv
+Switzerland/Seewil,CH,Prunus avium,47.048228,7.409689,560.0,2007,2020,13,meteoswiss.csv
+Switzerland/Seewis Dorf,CH,Prunus avium,46.965358,9.632064,960.0,1951,2023,55,meteoswiss.csv
+Switzerland/Sent,CH,Prunus avium,46.815436,10.335078,1440.0,1970,2009,40,meteoswiss.csv
+Switzerland/Seon,CH,Prunus avium,47.338319,8.153353,550.0,1952,2023,72,meteoswiss.csv
+Switzerland/Sihlbrugg,CH,Prunus avium,47.219356,8.5767,480.0,1960,2019,41,meteoswiss.csv
+Switzerland/Silenen,CH,Prunus avium,46.782531,8.669625,510.0,1992,2023,32,meteoswiss.csv
+Switzerland/Simplon-Dorf,CH,Prunus avium,46.195022,8.056794,1475.0,1953,2023,49,meteoswiss.csv
+Switzerland/St. Gallen / Winkeln,CH,Prunus avium,47.403389,9.326614,655.0,2022,2023,2,meteoswiss.csv
+Switzerland/St. Luc,CH,Prunus avium,46.222336,7.594153,1650.0,1970,2023,46,meteoswiss.csv
+Switzerland/Sta. Maria (Val Mustair),CH,Prunus avium,46.603092,10.421956,1390.0,1998,2023,25,meteoswiss.csv
+Switzerland/Stampa,CH,Prunus avium,46.34585,9.595214,1000.0,1970,2023,53,meteoswiss.csv
+"Switzerland/Stein, AR II",CH,Prunus avium,47.381969,9.348772,825.0,1979,2023,45,meteoswiss.csv
+Switzerland/Therwil,CH,Prunus avium,47.499697,7.558086,310.0,2004,2022,14,meteoswiss.csv
+Switzerland/Thusis,CH,Prunus avium,46.709511,9.44165,700.0,1956,2023,63,meteoswiss.csv
+Switzerland/Trient,CH,Prunus avium,46.048003,6.993797,1300.0,1951,2023,73,meteoswiss.csv
+Switzerland/Unterseen,CH,Prunus avium,46.684958,7.854311,565.0,2007,2023,17,meteoswiss.csv
+Switzerland/Vallorbe,CH,Prunus avium,46.712292,6.379286,850.0,1951,2023,44,meteoswiss.csv
+Switzerland/Vals,CH,Prunus avium,46.622889,9.182461,1250.0,1956,2023,61,meteoswiss.csv
+Switzerland/Vergeletto,CH,Prunus avium,46.225417,8.605172,1100.0,1956,2023,36,meteoswiss.csv
+Switzerland/Versoix,CH,Prunus avium,46.290431,6.137128,440.0,1952,2023,64,meteoswiss.csv
+Switzerland/Villnachern,CH,Prunus avium,47.470556,8.154928,415.0,1970,2023,54,meteoswiss.csv
+Switzerland/Vira / Gambarogno,CH,Prunus avium,46.143428,8.841697,210.0,1975,2023,44,meteoswiss.csv
+Switzerland/Visp,CH,Prunus avium,46.293494,7.892842,650.0,1992,2023,19,meteoswiss.csv
+"Switzerland/Wald, ZH",CH,Prunus avium,47.277122,8.916314,620.0,1955,2023,43,meteoswiss.csv
+"Switzerland/Wattwil, SG",CH,Prunus avium,47.289853,9.104422,625.0,1952,2023,72,meteoswiss.csv
+Switzerland/Wengen,CH,Prunus avium,46.603731,7.921556,1300.0,1993,2023,24,meteoswiss.csv
+Switzerland/Wetzikon,CH,Prunus avium,47.320664,8.814333,555.0,1993,2023,30,meteoswiss.csv
+"Switzerland/Wil, SG",CH,Prunus avium,47.461458,9.056733,600.0,1992,2023,30,meteoswiss.csv
+Switzerland/Wildhaus,CH,Prunus avium,47.205022,9.352617,1100.0,1999,2023,21,meteoswiss.csv
+Switzerland/Wiliberg,CH,Prunus avium,47.279603,8.027331,650.0,1952,2023,70,meteoswiss.csv
+Switzerland/Winterthur,CH,Prunus avium,47.474228,8.795444,580.0,1966,2023,34,meteoswiss.csv
+Switzerland/Wolhusen,CH,Prunus avium,47.064342,8.071028,580.0,1992,2023,32,meteoswiss.csv
+Switzerland/Worb BE,CH,Prunus avium,46.924433,7.577772,600.0,1986,2023,38,meteoswiss.csv
+Switzerland/Wynau,CH,Prunus avium,47.256317,7.808556,450.0,1970,2023,53,meteoswiss.csv
+Switzerland/Wädenswil,CH,Prunus avium,47.223239,8.679778,480.0,1956,2023,58,meteoswiss.csv
+Switzerland/Zizers,CH,Prunus avium,46.931325,9.566175,600.0,1971,2023,52,meteoswiss.csv
+Switzerland/Zofingen,CH,Prunus avium,47.291794,7.941003,440.0,1951,1999,44,meteoswiss.csv
+Switzerland/Zweisimmen,CH,Prunus avium,46.555264,7.373433,965.0,1958,2023,55,meteoswiss.csv
+Switzerland/Zürich-Albisgütli,CH,Prunus avium,47.350869,8.510678,530.0,1952,2023,58,meteoswiss.csv
+Switzerland/Zürich-MeteoSchweiz,CH,Prunus avium,47.378142,8.565853,555.0,1956,2023,67,meteoswiss.csv
+Switzerland/Zürich-Witikon,CH,Prunus avium,47.3591,8.590272,620.0,1966,2022,55,meteoswiss.csv
+liestal,CH,Prunus avium,47.4814,7.730519,350.0,1894,2025,132,liestal.csv
+Japan/Abashiri,JP,Prunus x jamasakura,44.0177777777778,144.279722222222,37.58,1953,2021,60,japan.csv
+Japan/Aikawa,JP,Prunus x jamasakura,38.0291666666667,138.24,5.5,1953,2007,55,japan.csv
+Japan/Akita,JP,Prunus x jamasakura,39.7175,140.099166666667,6.3,1953,2021,138,japan.csv
+Japan/Aomori,JP,Prunus x jamasakura,40.8216666666667,140.768888888889,2.8,1956,2021,66,japan.csv
+Japan/Asahikawa,JP,Prunus x jamasakura,43.7569444444444,142.372222222222,119.8,1953,2021,69,japan.csv
+Japan/Choshi,JP,Prunus x jamasakura,35.7397222222222,140.857222222222,20.1,1953,2021,69,japan.csv
+Japan/Esashi,JP,Prunus x jamasakura,41.8672222222222,140.123888888889,3.72,1953,2007,54,japan.csv
+Japan/Fukue,JP,Prunus x jamasakura,32.6947222222222,128.826944444444,25.1,1953,2009,57,japan.csv
+Japan/Fukui,JP,Prunus x jamasakura,36.0555555555556,136.2225,8.8,1953,2021,69,japan.csv
+Japan/Fukuoka,JP,Prunus x jamasakura,33.5822222222222,130.376388888889,2.5,1953,2021,68,japan.csv
+Japan/Fukushima,JP,Prunus x jamasakura,37.7594444444444,140.470833333333,67.44,1953,2021,69,japan.csv
+Japan/Gifu,JP,Prunus x jamasakura,35.4002777777778,136.7625,12.7,1953,2021,69,japan.csv
+Japan/Hachijojima,JP,Prunus x jamasakura,33.1216666666667,139.779166666667,151.21,1953,2009,56,japan.csv
+Japan/Hachinohe,JP,Prunus x jamasakura,40.5272222222222,141.521666666667,27.1,1953,2007,55,japan.csv
+Japan/Hakodate,JP,Prunus x jamasakura,41.8166666666667,140.754166666667,35.0,1953,2021,69,japan.csv
+Japan/Hamada,JP,Prunus x jamasakura,34.8966666666667,132.070555555556,19.0,1953,2007,55,japan.csv
+Japan/Hamamatsu,JP,Prunus x jamasakura,34.7538888888889,137.711666666667,45.93,1953,2005,52,japan.csv
+Japan/Hikone,JP,Prunus x jamasakura,35.2761111111111,136.243888888889,87.3,1953,2021,69,japan.csv
+Japan/Hiroo,JP,Prunus x jamasakura,42.2944444444444,143.316666666667,32.4,1958,1998,41,japan.csv
+Japan/Hiroshima,JP,Prunus x jamasakura,34.3986111111111,132.462777777778,3.6,1953,2021,69,japan.csv
+Japan/Iida,JP,Prunus x jamasakura,35.5233333333333,137.8225,516.4,1953,2006,54,japan.csv
+Japan/Iriomotejima,JP,Prunus x jamasakura,24.4277777777778,123.765555555556,9.9,1975,2002,24,japan.csv
+Japan/Ishigakijima,JP,Prunus x jamasakura,24.3366666666667,124.164444444444,5.7,1958,2021,55,japan.csv
+Japan/Iwamizawa,JP,Prunus x jamasakura,43.2116666666667,141.785833333333,42.3,1953,2006,52,japan.csv
+Japan/Izuhara,JP,Prunus x jamasakura,34.1977777777778,129.291944444444,3.65,1953,2009,114,japan.csv
+Japan/Kagoshima,JP,Prunus x jamasakura,31.555,130.548055555556,3.9,1953,2021,69,japan.csv
+Japan/Kanazawa,JP,Prunus x jamasakura,36.5897222222222,136.634722222222,5.7,1953,2021,69,japan.csv
+Japan/Kobe,JP,Prunus x jamasakura,34.6969444444444,135.212777777778,5.3,1953,2021,69,japan.csv
+Japan/Kochi,JP,Prunus x jamasakura,33.5680555555556,133.549444444444,0.5,1955,2021,130,japan.csv
+Japan/Kofu,JP,Prunus x jamasakura,35.6672222222222,138.553888888889,272.8,1953,2021,69,japan.csv
+Japan/Kumagaya,JP,Prunus x jamasakura,36.15,139.38,30.0,1953,2021,69,japan.csv
+Japan/Kumamoto,JP,Prunus x jamasakura,32.8136111111111,130.706944444444,37.72,1953,2021,69,japan.csv
+Japan/Kumejima,JP,Prunus x jamasakura,26.3380555555556,126.803888888889,5.0,1962,2004,31,japan.csv
+Japan/Kushiro,JP,Prunus x jamasakura,42.9858333333333,144.377777777778,4.5,1954,2021,134,japan.csv
+Japan/Kutchan,JP,Prunus x jamasakura,42.9011111111111,140.758055555556,176.1,1954,2006,51,japan.csv
+Japan/Kyoto,JP,Prunus x jamasakura,35.0147222222222,135.732777777778,40.81,1953,2021,69,japan.csv
+Japan/Maebashi,JP,Prunus x jamasakura,36.4052777777778,139.060555555556,112.1,1953,2021,69,japan.csv
+Japan/Maizuru,JP,Prunus x jamasakura,35.4502777777778,135.318055555556,2.42,1953,2012,60,japan.csv
+Japan/Matsue,JP,Prunus x jamasakura,35.4572222222222,133.065555555556,16.9,1953,2021,63,japan.csv
+Japan/Matsumoto,JP,Prunus x jamasakura,36.2466666666667,137.970555555556,610.0,1953,2007,55,japan.csv
+Japan/Matsuyama,JP,Prunus x jamasakura,33.8436111111111,132.7775,32.16,1953,2021,69,japan.csv
+Japan/Minamidaitojima,JP,Prunus x jamasakura,25.8288888888889,131.228611111111,15.3,1971,2019,43,japan.csv
+Japan/Mito,JP,Prunus x jamasakura,36.3811111111111,140.468055555556,29.0,1953,2021,69,japan.csv
+Japan/Miyakejima,JP,Prunus x jamasakura,34.1238888888889,139.521388888889,37.7,1965,2000,34,japan.csv
+Japan/Miyako,JP,Prunus x jamasakura,39.6469444444444,141.965833333333,42.47,1953,2007,55,japan.csv
+Japan/Miyakojima,JP,Prunus x jamasakura,24.7944444444444,125.278333333333,39.9,1954,2021,46,japan.csv
+Japan/Miyazaki,JP,Prunus x jamasakura,31.9383333333333,131.414166666667,9.2,1953,2021,69,japan.csv
+Japan/Mombetsu,JP,Prunus x jamasakura,44.345,143.355277777778,15.8,1956,2007,52,japan.csv
+Japan/Morioka,JP,Prunus x jamasakura,39.6983333333333,141.166111111111,155.2,1953,2021,69,japan.csv
+Japan/Muroran,JP,Prunus x jamasakura,42.3116666666667,140.975277777778,39.89,1953,2021,138,japan.csv
+Japan/Nagano,JP,Prunus x jamasakura,36.6627777777778,138.1925,418.2,1953,2021,69,japan.csv
+Japan/Nagasaki,JP,Prunus x jamasakura,32.7341666666667,129.868055555556,26.9,1953,2021,69,japan.csv
+Japan/Nago,JP,Prunus x jamasakura,26.5941666666667,127.966388888889,6.1,1977,2002,23,japan.csv
+Japan/Nagoya,JP,Prunus x jamasakura,35.1677777777778,136.965555555556,51.1,1953,2021,138,japan.csv
+Japan/Naha,JP,Prunus x jamasakura,26.2072222222222,127.687222222222,28.06,1976,2021,45,japan.csv
+Japan/Nara,JP,Prunus x jamasakura,34.6938888888889,135.827777777778,104.4,1954,2021,68,japan.csv
+Japan/Naze,JP,Prunus x jamasakura,28.3797222222222,129.495555555556,2.8,1953,2021,53,japan.csv
+Japan/Naze/Funchatoge,JP,Prunus x jamasakura,28.3941666666667,129.552777777778,294.1,1953,2021,53,japan.csv
+Japan/Nemuro,JP,Prunus x jamasakura,43.3305555555556,145.585555555556,25.2,1960,2010,50,japan.csv
+Japan/Niigata,JP,Prunus x jamasakura,37.8936111111111,139.018888888889,4.1,1953,2021,69,japan.csv
+Japan/Nobeoka,JP,Prunus x jamasakura,32.5819444444444,131.658055555556,19.2,1962,1994,33,japan.csv
+Japan/Obihiro,JP,Prunus x jamasakura,42.9222222222222,143.211944444444,38.4,1953,2021,69,japan.csv
+Japan/Oita,JP,Prunus x jamasakura,33.2361111111111,131.619166666667,4.6,1953,2021,69,japan.csv
+Japan/Okayama,JP,Prunus x jamasakura,34.6858333333333,133.925277777778,5.32,1953,2021,69,japan.csv
+Japan/Onahama,JP,Prunus x jamasakura,36.9475,140.903333333333,3.3,1953,2008,56,japan.csv
+Japan/Osaka,JP,Prunus x jamasakura,34.6822222222222,135.519166666667,23.0,1957,2021,61,japan.csv
+Japan/Oshima,JP,Prunus x jamasakura,34.7494444444444,139.363055555556,74.0,1954,2009,47,japan.csv
+Japan/Owase,JP,Prunus x jamasakura,34.0697222222222,136.193333333333,15.3,1953,2007,55,japan.csv
+Japan/Rumoi,JP,Prunus x jamasakura,43.9461111111111,141.631944444444,23.6,1953,2008,53,japan.csv
+Japan/Saga,JP,Prunus x jamasakura,33.2663888888889,130.305277777778,5.47,1953,2021,68,japan.csv
+Japan/Saigo,JP,Prunus x jamasakura,36.2044444444444,133.333888888889,26.5,1953,2008,56,japan.csv
+Japan/Sakata,JP,Prunus x jamasakura,38.9086111111111,139.843333333333,3.14,1953,2009,57,japan.csv
+Japan/Sapporo,JP,Prunus x jamasakura,43.06,141.328611111111,17.45,1953,2021,68,japan.csv
+Japan/Sendai,JP,Prunus x jamasakura,38.2619444444444,140.896666666667,38.85,1953,2021,138,japan.csv
+Japan/Shimonoseki,JP,Prunus x jamasakura,33.9486111111111,130.926111111111,3.3,1953,2021,69,japan.csv
+Japan/Shinjo,JP,Prunus x jamasakura,38.7569444444444,140.312222222222,105.1,1958,1997,40,japan.csv
+Japan/Shionomisaki,JP,Prunus x jamasakura,33.4502777777778,135.757222222222,67.53,1958,2009,100,japan.csv
+Japan/Shirakawa,JP,Prunus x jamasakura,37.1316666666667,140.215,354.95,1953,1997,45,japan.csv
+Japan/Shizuoka,JP,Prunus x jamasakura,34.9761111111111,138.403888888889,14.1,1953,2021,69,japan.csv
+Japan/Sumoto,JP,Prunus x jamasakura,34.3383333333333,134.905,109.3,1953,2002,49,japan.csv
+Japan/Takada,JP,Prunus x jamasakura,37.1066666666667,138.246666666667,12.9,1953,2007,55,japan.csv
+Japan/Takamatsu,JP,Prunus x jamasakura,34.3180555555556,134.054444444444,8.7,1953,2021,69,japan.csv
+Japan/Takayama,JP,Prunus x jamasakura,36.1561111111111,137.253333333333,560.0,1953,2005,53,japan.csv
+Japan/Tanegashima,JP,Prunus x jamasakura,30.7202777777778,130.9825,24.9,1953,2007,39,japan.csv
+Japan/Tateyama,JP,Prunus x jamasakura,34.9869444444444,139.865277777778,5.8,1969,2006,38,japan.csv
+Japan/Tokushima,JP,Prunus x jamasakura,34.0677777777778,134.573333333333,1.6,1953,2021,69,japan.csv
+Japan/Tokyo,JP,Prunus x jamasakura,35.6916666666667,139.751111111111,25.2,1953,2021,69,japan.csv
+Japan/Tottori,JP,Prunus x jamasakura,35.4877777777778,134.238333333333,7.1,1953,2021,138,japan.csv
+Japan/Toyama,JP,Prunus x jamasakura,36.7094444444445,137.2025,8.6,1953,2021,69,japan.csv
+Japan/Toyooka,JP,Prunus x jamasakura,35.5358333333333,134.822222222222,3.4,1953,2007,55,japan.csv
+Japan/Tsu,JP,Prunus x jamasakura,34.7341666666667,136.519722222222,2.7,1953,2021,69,japan.csv
+Japan/Tsuruga,JP,Prunus x jamasakura,35.6533333333333,136.062222222222,1.6,1953,2005,53,japan.csv
+Japan/Urakawa,JP,Prunus x jamasakura,42.1625,142.776944444444,36.74,1953,2009,57,japan.csv
+Japan/Utsunomiya,JP,Prunus x jamasakura,36.5497222222222,139.868333333333,119.4,1953,2021,69,japan.csv
+Japan/Uwajima,JP,Prunus x jamasakura,33.2277777777778,132.553055555556,2.4,1967,2005,39,japan.csv
+Japan/Wajima,JP,Prunus x jamasakura,37.3913888888889,136.895277777778,5.16,1953,2010,58,japan.csv
+Japan/Wakayama,JP,Prunus x jamasakura,34.2288888888889,135.164166666667,13.9,1955,2021,67,japan.csv
+Japan/Wakkanai,JP,Prunus x jamasakura,45.415,141.678888888889,2.85,1953,2021,60,japan.csv
+Japan/Yakushima,JP,Prunus x jamasakura,30.3855555555556,130.659166666667,37.3,1991,1991,2,japan.csv
+Japan/Yamagata,JP,Prunus x jamasakura,38.2555555555556,140.346111111111,152.5,1953,2021,69,japan.csv
+Japan/Yokohama,JP,Prunus x jamasakura,35.4397222222222,139.6525,39.1,1953,2021,69,japan.csv
+Japan/Yonago,JP,Prunus x jamasakura,35.4347222222222,133.338611111111,6.5,1954,2008,55,japan.csv
+Japan/Yonagunijima,JP,Prunus x jamasakura,24.4666666666667,123.010555555556,30.0,1992,2007,16,japan.csv
+kyoto,JP,Prunus x jamasakura,35.0119831,135.6761135,44.0,812,2025,837,kyoto.csv
+South Korea/Boeun,KR,Prunus x yedoensis,36.48759,127.73412,174.99,1980,1994,15,south_korea.csv
+South Korea/Boryeong,KR,Prunus x yedoensis,36.32724,126.55744,9.98,1980,1994,15,south_korea.csv
+South Korea/Buan,KR,Prunus x yedoensis,35.72954,126.71655,11.96,1980,1994,13,south_korea.csv
+South Korea/Busan,KR,Prunus x yedoensis,35.10468,129.03203,69.56,1980,2020,20,south_korea.csv
+South Korea/Buyeo,KR,Prunus x yedoensis,36.27242,126.92079,11.79,1980,2004,19,south_korea.csv
+South Korea/Cheonan,KR,Prunus x yedoensis,36.7624,127.2927,81.5,1980,2015,16,south_korea.csv
+South Korea/Cheongju,KR,Prunus x yedoensis,36.63924,127.44066,58.7,1980,2020,21,south_korea.csv
+South Korea/Chuncheon,KR,Prunus x yedoensis,37.90256,127.7357,76.47,1980,2016,20,south_korea.csv
+South Korea/Chungju,KR,Prunus x yedoensis,36.97038,127.95266,116.3,1980,2015,16,south_korea.csv
+South Korea/Chupungnyeong,KR,Prunus x yedoensis,36.22023,127.99457,243.7,1980,2015,16,south_korea.csv
+South Korea/Daegu,KR,Prunus x yedoensis,35.87797,128.65295,53.5,1980,2020,22,south_korea.csv
+South Korea/Daegwallyeong,KR,Prunus x yedoensis,37.67713,128.71833,772.57,1982,1994,7,south_korea.csv
+South Korea/Daejeon,KR,Prunus x yedoensis,36.372,127.37212,68.9,1980,2020,22,south_korea.csv
+South Korea/Ganghwa,KR,Prunus x yedoensis,37.70739,126.44634,47.84,1980,1994,15,south_korea.csv
+South Korea/Gangneung,KR,Prunus x yedoensis,37.75147,128.89098,26.04,1980,1994,15,south_korea.csv
+South Korea/Geochang,KR,Prunus x yedoensis,35.6674,127.909,225.95,1980,1994,15,south_korea.csv
+South Korea/Geoje,KR,Prunus x yedoensis,34.88818,128.60453,45.4,1980,1994,14,south_korea.csv
+South Korea/Geumsan,KR,Prunus x yedoensis,36.1027,127.4817,170.34,1980,1994,15,south_korea.csv
+South Korea/Goheung,KR,Prunus x yedoensis,34.61826,127.27572,51.91,1980,1994,15,south_korea.csv
+South Korea/Gumi,KR,Prunus x yedoensis,36.13,128.32,48.88,1980,1994,15,south_korea.csv
+South Korea/Gunsan,KR,Prunus x yedoensis,36.0053,126.76135,23.2,1980,2015,15,south_korea.csv
+South Korea/Gwangju,KR,Prunus x yedoensis,35.17294,126.89158,72.38,1980,2020,21,south_korea.csv
+South Korea/Haenam,KR,Prunus x yedoensis,34.55375,126.56907,16.36,1980,1994,15,south_korea.csv
+South Korea/Hapcheon,KR,Prunus x yedoensis,35.56503,128.16986,32.0,1980,1994,14,south_korea.csv
+South Korea/Hongcheon,KR,Prunus x yedoensis,37.68358,127.8804,139.95,1980,1994,14,south_korea.csv
+South Korea/Icheon,KR,Prunus x yedoensis,37.26399,127.48421,80.09,1980,2015,18,south_korea.csv
+South Korea/Imsil,KR,Prunus x yedoensis,35.61203,127.28556,247.04,1980,1994,15,south_korea.csv
+South Korea/Incheon,KR,Prunus x yedoensis,37.47772,126.6249,68.99,1980,2020,20,south_korea.csv
+South Korea/Inje,KR,Prunus x yedoensis,38.05987,128.16713,200.16,1980,1994,11,south_korea.csv
+South Korea/Jangheung,KR,Prunus x yedoensis,34.68875,126.91949,45.02,1980,1994,15,south_korea.csv
+South Korea/Jecheon,KR,Prunus x yedoensis,37.15927,128.19431,259.8,1980,1994,14,south_korea.csv
+South Korea/Jeju,KR,Prunus x yedoensis,33.51411,126.52968,20.45,1980,2020,20,south_korea.csv
+South Korea/Jeongeup,KR,Prunus x yedoensis,35.56306,126.83917,69.84,1980,2015,18,south_korea.csv
+South Korea/Jeonju,KR,Prunus x yedoensis,35.8408,127.119,61.4,1980,2020,20,south_korea.csv
+South Korea/Jinju,KR,Prunus x yedoensis,35.16379,128.04002,30.21,1980,1994,15,south_korea.csv
+South Korea/Miryang,KR,Prunus x yedoensis,35.49148,128.7441,11.21,1980,1994,15,south_korea.csv
+South Korea/Mokpo,KR,Prunus x yedoensis,34.81689,126.38121,38.0,1980,2020,21,south_korea.csv
+South Korea/Mungyeong,KR,Prunus x yedoensis,36.62727,128.148,170.61,1984,1994,10,south_korea.csv
+South Korea/Namhae,KR,Prunus x yedoensis,34.81662,127.92641,45.71,1980,1994,15,south_korea.csv
+South Korea/Pohang,KR,Prunus x yedoensis,36.03201,129.38002,3.94,1980,2020,19,south_korea.csv
+South Korea/Sancheong,KR,Prunus x yedoensis,35.41299,127.8791,138.07,1980,1994,15,south_korea.csv
+South Korea/Seogwipo,KR,Prunus x yedoensis,33.24613,126.56534,49.03,1980,2020,19,south_korea.csv
+South Korea/Seongsan,KR,Prunus x yedoensis,33.38677,126.8802,20.34,1980,2014,20,south_korea.csv
+South Korea/Seosan,KR,Prunus x yedoensis,36.77661,126.49391,25.86,1980,2017,18,south_korea.csv
+South Korea/Seoul,KR,Prunus x yedoensis,37.57142,126.9658,85.67,1980,2020,25,south_korea.csv
+South Korea/Sokcho,KR,Prunus x yedoensis,38.25085,128.56472,18.06,1980,2004,18,south_korea.csv
+South Korea/Suwon,KR,Prunus x yedoensis,37.27226,126.98533,34.84,1980,2020,22,south_korea.csv
+South Korea/Tongyeong,KR,Prunus x yedoensis,34.84546,128.4356,32.3,1980,1994,15,south_korea.csv
+South Korea/Uiseong,KR,Prunus x yedoensis,36.35611,128.688,81.81,1980,1994,15,south_korea.csv
+South Korea/Uljin,KR,Prunus x yedoensis,36.99176,129.41278,50.0,1980,2015,16,south_korea.csv
+South Korea/Ulleungdo,KR,Prunus x yedoensis,37.48129,130.89864,222.4,1980,2020,21,south_korea.csv
+South Korea/Ulsan,KR,Prunus x yedoensis,35.5825,129.3347222,82.0,1980,2020,20,south_korea.csv
+South Korea/Wando,KR,Prunus x yedoensis,34.39587,126.70184,35.24,1980,2015,18,south_korea.csv
+South Korea/Wonju,KR,Prunus x yedoensis,37.33756,127.9466,148.6,1980,2005,16,south_korea.csv
+South Korea/Yangpyeong,KR,Prunus x yedoensis,37.48863,127.49446,47.26,1980,1994,14,south_korea.csv
+South Korea/Yeongcheon,KR,Prunus x yedoensis,35.97743,128.95141,93.8,1980,1995,16,south_korea.csv
+South Korea/Yeongdeok,KR,Prunus x yedoensis,36.53331,129.40936,40.61,1980,1995,16,south_korea.csv
+South Korea/Yeongju,KR,Prunus x yedoensis,36.87188,128.51696,210.79,1980,1994,15,south_korea.csv
+South Korea/Yeosu,KR,Prunus x yedoensis,34.73929,127.74064,64.64,1980,2020,24,south_korea.csv
+newyorkcity,US,Prunus x yedoensis,40.7304,-73.99809,8.5,2024,2025,2,nyc.csv
+washingtondc,US,Prunus x yedoensis,38.8853496,-77.0386278,0.0,1921,2025,105,washingtondc.csv
