@@ -164,6 +164,11 @@ def forecast_2026_climate():
         
     final_df = final_df[cols_to_keep].sort_values(by=['location', 'date']).reset_index(drop=True)
 
+    prcp_missing = final_df['prcp_mm'].isna().sum()
+    if prcp_missing > 0:
+        print(f"Filling {prcp_missing} missing precipitation values with 0.0")
+        final_df['prcp_mm'] = final_df['prcp_mm'].fillna(0.0)
+
     numeric_cols = ['tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm']
     final_df[numeric_cols] = final_df[numeric_cols].round(3)
     

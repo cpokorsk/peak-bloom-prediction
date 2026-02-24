@@ -40,6 +40,9 @@ LOCATION_ALIASES = {
     "switzerland/liestal": "liestal",
 }
 HOLDOUT_LOCATIONS = ["vancouver", "newyorkcity"]
+HOLDOUT_EXTRA_COUNTRIES = ["KR", "CH", "JP"]
+HOLDOUT_PER_COUNTRY = 3
+HOLDOUT_RANDOM_SEED = 42
 
 # ==========================================
 # LOCATION / SPECIES MAPPINGS

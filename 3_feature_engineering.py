@@ -14,6 +14,7 @@ from phenology_config import (
     TARGET_YEAR,
     TARGET_PREDICTION_LOCATIONS,
     get_species_thresholds,
+    SPECIES_THRESHOLDS,
     get_continent_for_country,
     normalize_location,
 )
@@ -42,12 +43,15 @@ def build_features(bloom_df, climate_df, is_future=False):
         print(f"Dropped {dropped} {label} bloom rows without climate coverage.")
 
     features = []
+    unknown_species = set()
 
     for _, row in tqdm(bloom_df.iterrows(), total=len(bloom_df), desc="Processing Bloom Events"):
         loc = row['location']
         year = row['year']
         b_doy = row['bloom_doy']
         species = row.get('species', 'Unknown')
+        if species not in SPECIES_THRESHOLDS:
+            unknown_species.add(species)
 
         # Skip if we don't have climate data for this location
         if loc not in climate_by_loc:
@@ -74,7 +78,7 @@ def build_features(bloom_df, climate_df, is_future=False):
         mean_tmin_early_spring = early_spring['tmin_c'].mean()
         max_tmax_early_spring = early_spring['tmax_c'].max()
         min_tmin_early_spring = early_spring['tmin_c'].min()
-        total_prcp_early_spring = early_spring['prcp_mm'].sum()
+        total_prcp_early_spring = early_spring['prcp_mm'].fillna(0).sum()
         
         observed_gdd = np.maximum(early_spring['tmean_c'] - forcing_base, 0).sum()
 
@@ -113,6 +117,10 @@ def build_features(bloom_df, climate_df, is_future=False):
             'forcing_base_used': forcing_base,
             'is_future': is_future
         })
+
+    if unknown_species:
+        print("Warning: Missing species thresholds for:")
+        print(", ".join(sorted(unknown_species)))
 
     return pd.DataFrame(features)
 

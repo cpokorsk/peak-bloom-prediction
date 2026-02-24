@@ -2,12 +2,14 @@ import os
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
     HOLDOUT_LOCATIONS,
+    HOLDOUT_EXTRA_COUNTRIES,
+    HOLDOUT_PER_COUNTRY,
+    HOLDOUT_RANDOM_SEED,
     MIN_MODEL_YEAR,
     TARGET_YEAR,
     TARGET_PREDICTION_LOCATIONS,
@@ -32,14 +34,8 @@ def main():
         features_df['is_future'] = False
 
     required_predictors = [
-        'mean_tmax_early_spring',
-        'mean_tmin_early_spring',
         'max_tmax_early_spring',
-        'min_tmin_early_spring',
-        'observed_gdd_to_bloom',
         'total_prcp_early_spring',
-        'chill_days_oct1_dec31',
-        'alt',
         'species',
         'continent'
     ]
@@ -49,14 +45,46 @@ def main():
     
     print("\n--- Splitting Data ---")
     # 1. Separate the Holdout Test Set (Vancouver & NYC)
-    holdout_mask = df['location'].isin(set(HOLDOUT_LOCATIONS))
+    # 1. Separate the Holdout Test Set (target holdouts + extra country holdouts)
+    base_holdout = set(HOLDOUT_LOCATIONS)
+    rng = np.random.default_rng(HOLDOUT_RANDOM_SEED)
+
+    location_meta = (
+        df[['location', 'country_code']]
+        .dropna(subset=['location'])
+        .drop_duplicates(subset=['location'])
+        .copy()
+    )
+
+    extra_holdout = set()
+    for country in HOLDOUT_EXTRA_COUNTRIES:
+        candidates = location_meta[location_meta['country_code'] == country]['location']
+        candidates = [loc for loc in candidates if loc not in base_holdout and loc not in TARGET_PREDICTION_LOCATIONS]
+        if candidates:
+            pick_count = min(HOLDOUT_PER_COUNTRY, len(candidates))
+            extra_holdout.update(rng.choice(candidates, size=pick_count, replace=False).tolist())
+
+    holdout_locations = base_holdout.union(extra_holdout)
+    holdout_mask = df['location'].isin(holdout_locations)
     df_holdout = df[holdout_mask].copy()
     df_main = df[~holdout_mask].copy()
     
-    # 2. Split Main pool into Train, Validation, and Main Test sets
-    # Train 70%, Val 15%, Test 15%
-    train_val, test_main = train_test_split(df_main, test_size=0.15, random_state=42)
-    train, val = train_test_split(train_val, test_size=(0.15/0.85), random_state=42)
+    # 2. Split Main pool into Train, Validation, and Main Test sets by time
+    # Train 70%, Val 15%, Test 15% using year-based slices
+    years = sorted(df_main['year'].dropna().unique().tolist())
+    if len(years) < 3:
+        raise ValueError("Not enough unique years for time-based split.")
+
+    train_cut = int(len(years) * 0.70)
+    val_cut = int(len(years) * 0.85)
+
+    train_years = set(years[:train_cut])
+    val_years = set(years[train_cut:val_cut])
+    test_years = set(years[val_cut:])
+
+    train = df_main[df_main['year'].isin(train_years)].copy()
+    val = df_main[df_main['year'].isin(val_years)].copy()
+    test_main = df_main[df_main['year'].isin(test_years)].copy()
     
     print(f"Training set: {len(train)} records")
     print(f"Validation set: {len(val)} records")
@@ -65,7 +93,7 @@ def main():
 
     print("\n--- Training Model ---")
     # Using Ordinary Least Squares (OLS) which provides exact 90% Prediction Intervals
-    formula = "bloom_doy ~ mean_tmax_early_spring + mean_tmin_early_spring + max_tmax_early_spring + min_tmin_early_spring + observed_gdd_to_bloom + total_prcp_early_spring + chill_days_oct1_dec31 + alt + C(species) + C(continent)"
+    formula = "bloom_doy ~ observed_gdd_to_bloom + chill_days_oct1_dec31 + total_prcp_early_spring + C(species)"
     model = smf.ols(formula=formula, data=train).fit()
     
     print(model.summary().tables[1])
@@ -100,13 +128,30 @@ def main():
     evaluate(test_main, "Main Test Set")
     evaluate(df_holdout, "Holdout Test Set (Generalization)")
 
-    print("\n--- Generating 2026 Predictions with 90% Confidence Intervals ---")
+    print("\n--- Generating 2026 Predictions with 90% Prediction Intervals ---")
     df_2026_features = features_df[features_df['is_future'] == True].copy()
+    if df_2026_features.empty:
+        raise ValueError("No 2026 feature rows found. Run 3_feature_engineering.py to generate future features.")
+
+    missing_columns = [col for col in required_predictors if col not in df_2026_features.columns]
+    if missing_columns:
+        raise ValueError(f"Missing required predictors in 2026 features: {', '.join(missing_columns)}")
+
     df_2026_features = df_2026_features[df_2026_features['location'].isin(TARGET_PREDICTION_LOCATIONS)]
+    if df_2026_features.empty:
+        raise ValueError("No 2026 feature rows for target locations. Check TARGET_PREDICTION_LOCATIONS or feature generation.")
+
+    missing_counts = df_2026_features[required_predictors].isna().sum()
+    if missing_counts.any():
+        print("Missing predictor counts in 2026 features:")
+        print(missing_counts[missing_counts > 0].to_string())
+
     df_2026_features = df_2026_features.dropna(subset=required_predictors)
 
     if df_2026_features.empty:
         raise ValueError("No complete 2026 feature rows available for prediction.")
+
+    df_2026_features = df_2026_features.reset_index(drop=True)
     
     # Generate Predictions & 90% Intervals (alpha=0.10)
     predictions = model.get_prediction(df_2026_features)
@@ -115,7 +160,7 @@ def main():
     df_2026_features['predicted_doy'] = pred_summary['mean'].round(1)
     df_2026_features['90_ci_lower'] = pred_summary['obs_ci_lower'].round(1)
     df_2026_features['90_ci_upper'] = pred_summary['obs_ci_upper'].round(1)
-    df_2026_features['interval_width_days'] = (df_2026_features['90_ci_upper'] - df_2026_features['90_ci_lower']).round(1)
+    df_2026_features['interval_halfwidth_days'] = ((df_2026_features['90_ci_upper'] - df_2026_features['90_ci_lower']) / 2).round(1)
     
     # Convert DOY to actual calendar dates
     def doy_to_date(year, doy):
@@ -126,7 +171,7 @@ def main():
     df_2026_features['predicted_date'] = df_2026_features.apply(lambda x: doy_to_date(x['year'], x['predicted_doy']), axis=1)
 
     # Clean up and save
-    final_cols = ['location', 'predicted_date', 'predicted_doy', '90_ci_lower', '90_ci_upper', 'interval_width_days']
+    final_cols = ['location', 'predicted_date', 'predicted_doy', '90_ci_lower', '90_ci_upper', 'interval_halfwidth_days']
     final_predictions = df_2026_features[final_cols]
     
     print(final_predictions.to_string(index=False))
