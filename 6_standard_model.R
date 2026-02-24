@@ -12,6 +12,10 @@ load(file.path("data", "growth_model_inputs.RData"))
 # Starting the Model Fitting
 MODEL_RESULTS_FILE <- file.path("data", "growth_model_results.RData")
 MODEL_OUTPUT_DIR <- file.path("data", "model_outputs")
+MODEL_METRICS_CSV <- file.path(MODEL_OUTPUT_DIR, "model_metrics.csv")
+LM_PARAMETERS_CSV <- file.path(MODEL_OUTPUT_DIR, "lm_parameter_estimates_90ci.csv")
+LASSO_PARAMETERS_CSV <- file.path(MODEL_OUTPUT_DIR, "lasso_parameter_estimates_90ci.csv")
+MODEL_PARAMETERS_COMPARISON_CSV <- file.path(MODEL_OUTPUT_DIR, "model_parameter_estimates_90ci_comparison.csv")
 PRED_2026_LINEAR_CSV <- file.path(MODEL_OUTPUT_DIR, "predictions_2026_linear.csv")
 PRED_2026_LASSO_CSV <- file.path(MODEL_OUTPUT_DIR, "predictions_2026_lasso.csv")
 PRED_2026_COMPARISON_CSV <- file.path(MODEL_OUTPUT_DIR, "predictions_2026_comparison.csv")
@@ -62,7 +66,7 @@ if (nrow(model_data) < 12) {
     stop("Not enough non-missing rows in model_data to create train/validation/test splits.")
 }
 
-assign_split <- function(years, train_frac = 0.70, val_frac = 0.15) {
+assign_split <- function(years, train_frac = 0.80, val_frac = 0.15) {
     n <- length(years)
     n_train <- max(1L, floor(n * train_frac))
     n_val <- max(1L, floor(n * val_frac))
@@ -108,7 +112,7 @@ model_data <- model_data %>%
     group_by(location) %>%
     mutate(
         split = if (first(data_role) == "train_pool") {
-            rep("train", n())
+            assign_split(year)
         } else {
             assign_holdout_split(year)
         }
@@ -129,16 +133,30 @@ train_data <- model_data %>% filter(split == "train")
 validation_data <- model_data %>% filter(split == "validation")
 test_data <- model_data %>% filter(split == "test")
 
-if (nrow(validation_data) == 0 || nrow(test_data) == 0) {
-    stop("Holdout locations do not provide enough rows for both validation and test sets.")
+if (nrow(train_data) == 0 || nrow(validation_data) == 0 || nrow(test_data) == 0) {
+    stop("Split failed: need non-empty train, validation, and test sets.")
 }
 
 growth_model <- lm(
-    bloom_doy ~ mean_tmin_adj_prebloom + mean_tmax_adj_prebloom + total_prcp_prebloom + bloom_alt_m,
+    bloom_doy ~ mean_tmax_adj_prebloom + total_prcp_prebloom,
     data = train_data
 )
 
-lasso_feature_formula <- ~ mean_tmin_adj_prebloom + mean_tmax_adj_prebloom + total_prcp_prebloom + bloom_alt_m
+lm_coef_summary <- summary(growth_model)$coefficients
+lm_confint_90 <- confint(growth_model, level = 0.90)
+
+lm_parameter_estimates <- tibble(
+    term = rownames(lm_coef_summary),
+    estimate = lm_coef_summary[, "Estimate"],
+    std_error = lm_coef_summary[, "Std. Error"],
+    statistic = lm_coef_summary[, "t value"],
+    p_value = lm_coef_summary[, "Pr(>|t|)"],
+    conf_low_90 = lm_confint_90[, 1],
+    conf_high_90 = lm_confint_90[, 2],
+    model = "linear"
+)
+
+lasso_feature_formula <- ~ mean_tmax_adj_prebloom + total_prcp_prebloom
 x_train <- model.matrix(lasso_feature_formula, data = train_data)[, -1, drop = FALSE]
 y_train <- train_data$bloom_doy
 
@@ -270,7 +288,23 @@ x_future_2026 <- model.matrix(lasso_feature_formula, data = future_2026_inputs)[
 pred_lasso_2026 <- as.numeric(predict(lasso_cv_model, newx = x_future_2026, s = "lambda.min"))
 
 alpha_tail <- (1 - LASSO_CI_LEVEL) / 2
-lasso_boot_pred_matrix <- replicate(LASSO_BOOTSTRAP_REPS, {
+lasso_coef_point <- as.matrix(coef(lasso_cv_model, s = "lambda.min"))
+lasso_coef_names <- rownames(lasso_coef_point)
+
+lasso_boot_pred_matrix <- matrix(
+    NA_real_,
+    nrow = nrow(x_future_2026),
+    ncol = LASSO_BOOTSTRAP_REPS
+)
+
+lasso_boot_coef_matrix <- matrix(
+    NA_real_,
+    nrow = length(lasso_coef_names),
+    ncol = LASSO_BOOTSTRAP_REPS,
+    dimnames = list(lasso_coef_names, NULL)
+)
+
+for (b in seq_len(LASSO_BOOTSTRAP_REPS)) {
     idx <- sample(seq_len(nrow(train_data)), size = nrow(train_data), replace = TRUE)
     x_boot <- x_train[idx, , drop = FALSE]
     y_boot <- y_train[idx]
@@ -283,11 +317,34 @@ lasso_boot_pred_matrix <- replicate(LASSO_BOOTSTRAP_REPS, {
         lambda = lasso_lambda
     )
 
-    as.numeric(predict(lasso_boot_model, newx = x_future_2026, s = lasso_lambda))
-})
+    lasso_boot_pred_matrix[, b] <- as.numeric(
+        predict(lasso_boot_model, newx = x_future_2026, s = lasso_lambda)
+    )
+
+    lasso_boot_coef_matrix[, b] <- as.numeric(
+        as.matrix(coef(lasso_boot_model, s = lasso_lambda))[, 1]
+    )
+}
 
 lasso_conf_low <- apply(lasso_boot_pred_matrix, 1, quantile, probs = alpha_tail, na.rm = TRUE)
 lasso_conf_high <- apply(lasso_boot_pred_matrix, 1, quantile, probs = 1 - alpha_tail, na.rm = TRUE)
+
+lasso_coef_conf_low <- apply(lasso_boot_coef_matrix, 1, quantile, probs = alpha_tail, na.rm = TRUE)
+lasso_coef_conf_high <- apply(lasso_boot_coef_matrix, 1, quantile, probs = 1 - alpha_tail, na.rm = TRUE)
+
+lasso_parameter_estimates <- tibble(
+    term = lasso_coef_names,
+    estimate = as.numeric(lasso_coef_point[, 1]),
+    conf_low_90 = as.numeric(lasso_coef_conf_low[lasso_coef_names]),
+    conf_high_90 = as.numeric(lasso_coef_conf_high[lasso_coef_names]),
+    model = "lasso"
+)
+
+model_parameter_estimates <- bind_rows(
+    lm_parameter_estimates %>% select(model, term, estimate, conf_low_90, conf_high_90, std_error, statistic, p_value),
+    lasso_parameter_estimates %>% mutate(std_error = NA_real_, statistic = NA_real_, p_value = NA_real_) %>%
+        select(model, term, estimate, conf_low_90, conf_high_90, std_error, statistic, p_value)
+)
 
 predictions_2026_lasso <- future_2026_inputs %>%
     transmute(
@@ -317,6 +374,10 @@ predictions_2026_comparison <- predictions_2026 %>%
     )
 
 dir.create(MODEL_OUTPUT_DIR, recursive = TRUE, showWarnings = FALSE)
+readr::write_csv(model_metrics, MODEL_METRICS_CSV)
+readr::write_csv(lm_parameter_estimates, LM_PARAMETERS_CSV)
+readr::write_csv(lasso_parameter_estimates, LASSO_PARAMETERS_CSV)
+readr::write_csv(model_parameter_estimates, MODEL_PARAMETERS_COMPARISON_CSV)
 readr::write_csv(predictions_2026, PRED_2026_LINEAR_CSV)
 readr::write_csv(predictions_2026_lasso, PRED_2026_LASSO_CSV)
 readr::write_csv(predictions_2026_comparison, PRED_2026_COMPARISON_CSV)
@@ -329,6 +390,9 @@ save(
     growth_model,
     lasso_cv_model,
     lasso_lambda,
+    lm_parameter_estimates,
+    lasso_parameter_estimates,
+    model_parameter_estimates,
     model_metrics,
     model_predictions,
     predictions_2026,
