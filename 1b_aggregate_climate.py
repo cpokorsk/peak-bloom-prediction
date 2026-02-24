@@ -212,6 +212,24 @@ def build_aggregated_climate():
             .apply(lambda s: fill_short_gaps(s, max_gap_days))
         )
         master_climate_df['tmean_c'] = (master_climate_df['tmax_c'] + master_climate_df['tmin_c']) / 2.0
+
+        # Improve tmean completeness: fill short gaps, then fallback to climatology by day-of-year.
+        tmean_gap_days = 7
+        master_climate_df['tmean_c'] = (
+            master_climate_df.groupby('location', group_keys=False)['tmean_c']
+            .apply(lambda s: fill_short_gaps(s, tmean_gap_days))
+        )
+
+        master_climate_df['doy'] = master_climate_df['date'].dt.dayofyear
+        tmean_doy_median = master_climate_df.groupby(['location', 'doy'])['tmean_c'].transform('median')
+        tmean_loc_median = master_climate_df.groupby('location')['tmean_c'].transform('median')
+        master_climate_df['tmean_c'] = master_climate_df['tmean_c'].fillna(tmean_doy_median)
+        master_climate_df['tmean_c'] = master_climate_df['tmean_c'].fillna(tmean_loc_median)
+        master_climate_df = master_climate_df.drop(columns=['doy'])
+
+        overall_missing_pct = master_climate_df['tmean_c'].isna().mean() * 100
+        print(f"tmean_c missing after fill: {overall_missing_pct:.2f}%")
+
         master_climate_df.to_csv(OUTPUT_CLIMATE_FILE, index=False)
         
         print("\n--- Aggregation Complete ---")

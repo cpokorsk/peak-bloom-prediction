@@ -28,15 +28,23 @@ OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE.replace(
 MIN_YEAR = MIN_MODEL_YEAR
 
 PREDICTOR_COLUMNS = [
+    "mean_tmax_early_spring",
+    "mean_tmin_early_spring",
     "max_tmax_early_spring",
     "total_prcp_early_spring",
+    "chill_days_oct1_dec31",
+    "observed_gdd_to_bloom",
     "species",
     "continent",
 ]
 
 NUMERIC_FEATURES = [
+    "mean_tmax_early_spring",
+    "mean_tmin_early_spring",
     "max_tmax_early_spring",
     "total_prcp_early_spring",
+    "chill_days_oct1_dec31",
+    "observed_gdd_to_bloom",
 ]
 
 CATEGORICAL_FEATURES = ["species", "continent"]
