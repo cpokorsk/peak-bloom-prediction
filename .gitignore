@@ -67,3 +67,4 @@ htmlcov/
 !.vscode/tasks.json
 !.vscode/launch.json
 
+__pycache__/1b_aggregate_climate.cpython-314.pyc
