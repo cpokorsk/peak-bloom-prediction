@@ -1,0 +1,136 @@
+import os
+import glob
+import pandas as pd
+
+# ==========================================
+# CONFIGURATION
+# ==========================================
+# Change this to "NOAA" if your 100+ files are stored in a folder named NOAA.
+# Based on the previous steps, we'll point this at "data" for the 5 sample stations.
+NOAA_DIR = "data/noaa"
+METADATA_OUTPUT_FILE = "data/NOAA_station_metadata.csv"
+
+STATION_PREFIX_TO_COUNTRY_CODE = {
+    "JA": "JP",
+    "KS": "KR",
+    "US": "US",
+    "CA": "CA",
+    "SZ": "CH",
+    "GM": "DE",
+    "IT": "IT",
+}
+
+
+def infer_country_code(station_id, station_name):
+    station_id_str = str(station_id)
+    prefix = station_id_str[:2].upper()
+    if prefix in STATION_PREFIX_TO_COUNTRY_CODE:
+        return STATION_PREFIX_TO_COUNTRY_CODE[prefix]
+
+    if pd.isna(station_name):
+        return "UNK"
+
+    suffix = str(station_name).split(",")[-1].strip().upper()
+    suffix_to_code = {
+        "JA": "JP",
+        "KS": "KR",
+        "SZ": "CH",
+        "US": "US",
+        "CA": "CA",
+        "IT": "IT",
+        "GM": "DE",
+    }
+    return suffix_to_code.get(suffix, "UNK")
+
+
+def extract_station_records(file_path):
+    source_file = os.path.basename(file_path)
+    source_name = os.path.splitext(source_file)[0]
+    required_cols = {'STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION'}
+
+    # Read only header first to validate schema without loading the full file
+    header_df = pd.read_csv(file_path, nrows=0)
+    columns = set(header_df.columns)
+    missing_cols = sorted(required_cols - columns)
+    if missing_cols:
+        return [], f"Missing required columns: {', '.join(missing_cols)}"
+
+    selected_cols = ['STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION']
+    if 'NAME' in columns:
+        selected_cols.append('NAME')
+
+    records_by_station = {}
+    for chunk in pd.read_csv(file_path, usecols=selected_cols, chunksize=200000):
+        chunk = chunk.dropna(subset=['STATION'])
+        chunk = chunk.drop_duplicates(subset=['STATION'])
+
+        for row in chunk.itertuples(index=False):
+            station_id = str(row.STATION)
+            if station_id not in records_by_station:
+                records_by_station[station_id] = {
+                    'station_id': station_id,
+                    'country_code': infer_country_code(station_id, row.NAME if hasattr(row, 'NAME') else None),
+                    'source_name': source_name,
+                    'source_file': source_file,
+                    'lat': row.LATITUDE,
+                    'lon': row.LONGITUDE,
+                    'elevation_m': row.ELEVATION,
+                    'name': row.NAME if hasattr(row, 'NAME') else "Unknown"
+                }
+
+    return list(records_by_station.values()), None
+
+def generate_metadata():
+    print(f"Scanning '{NOAA_DIR}/' for station CSV files...")
+    
+    # Grab all CSV files in the directory
+    station_files = sorted(glob.glob(os.path.join(NOAA_DIR, "*.csv")))
+    
+    metadata_records = []
+    processed_files = []
+    skipped_files = []
+    
+    for file_path in station_files:
+        file_name = os.path.basename(file_path)
+        try:
+            records, error = extract_station_records(file_path)
+            if error:
+                skipped_files.append((file_name, error))
+                print(f"Skipped {file_name} ({error})")
+                continue
+
+            metadata_records.extend(records)
+            processed_files.append(file_name)
+            print(f"Processed {file_name} -> {len(records)} unique station(s)")
+        except Exception as e:
+            skipped_files.append((file_name, f"Read error: {e}"))
+            print(f"Skipped {file_name} (read error)")
+
+    # Save to CSV if we found any stations
+    if metadata_records:
+        metadata_df = pd.DataFrame(metadata_records)
+        metadata_df = metadata_df.drop_duplicates(subset=['station_id']).sort_values('station_id').reset_index(drop=True)
+        metadata_df = metadata_df[['station_id', 'country_code', 'source_name', 'source_file', 'lat', 'lon', 'elevation_m', 'name']]
+        metadata_df['source_file'] = metadata_df['source_file'].astype(str).str.strip()
+        metadata_df.to_csv(METADATA_OUTPUT_FILE, index=False)
+
+        missing_source = int((metadata_df['source_file'] == "").sum())
+        print(f"\nSuccess! Extracted metadata for {len(metadata_df)} stations.")
+        print(f"Saved to: {METADATA_OUTPUT_FILE}")
+        print(f"source_file completeness: {len(metadata_df) - missing_source}/{len(metadata_df)}")
+        print(f"Processed files: {len(processed_files)} / {len(station_files)}")
+        if skipped_files:
+            print("\nSkipped files:")
+            for file_name, reason in skipped_files:
+                print(f"- {file_name}: {reason}")
+        print("\n--- Preview ---")
+        print(metadata_df.head())
+    else:
+        print("\nNo valid NOAA station CSV files found. Please check your directory path.")
+        if skipped_files:
+            print("\nSkipped files:")
+            for file_name, reason in skipped_files:
+                print(f"- {file_name}: {reason}")
+
+if __name__ == "__main__":
+    generate_metadata()
