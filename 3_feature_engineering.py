@@ -2,6 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+from phenology_config import get_species_thresholds
 
 # ==========================================
 # 1. CONFIGURATION
@@ -11,15 +12,6 @@ CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.cs
 OUTPUT_FEATURES_FILE = os.path.join("data", "model_outputs", "model_features.csv")
 
 MIN_YEAR = 1974  # Start at 1974 because we need Oct-Dec 1973 for the 1974 chill days
-
-# Define specific phenological thresholds for each species
-# (These can be adjusted as you refine the model)
-SPECIES_THRESHOLDS = {
-    "Prunus x yedoensis": {"chill_temp_c": 5.0, "forcing_base_c": 5.0},  # Yoshino
-    "Prunus avium":       {"chill_temp_c": 4.3, "forcing_base_c": 4.0},  # Sweet Cherry
-    "Prunus x jamasakura":{"chill_temp_c": 5.0, "forcing_base_c": 5.0},  # Japanese Mountain Cherry
-    "Unknown":            {"chill_temp_c": 5.0, "forcing_base_c": 5.0}   # Fallback
-}
 
 # ==========================================
 # 2. FEATURE ENGINEERING FUNCTION
@@ -59,7 +51,7 @@ def engineer_features():
         loc_climate = climate_by_loc[loc]
         
         # Get species-specific parameters
-        thresholds = SPECIES_THRESHOLDS.get(species, SPECIES_THRESHOLDS["Unknown"])
+        thresholds = get_species_thresholds(species)
         chill_thresh = thresholds["chill_temp_c"]
         forcing_base = thresholds["forcing_base_c"]
 

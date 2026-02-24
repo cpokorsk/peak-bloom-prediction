@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from statsmodels.tsa.ar_model import AutoReg
+from phenology_config import DEFAULT_FORCING_BASE_C
 
 # ==========================================
 # 1. CONFIGURATION
@@ -11,8 +12,9 @@ CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.cs
 OUTPUT_FORECAST_FILE = os.path.join("data", "model_outputs", "projected_climate_2026.csv")
 
 TARGET_YEAR = 2026
+PREDICTION_START_DATE = pd.to_datetime(f"{TARGET_YEAR-1}-10-01")
 FORECAST_END_DATE = pd.to_datetime(f"{TARGET_YEAR}-05-31")
-FORCING_BASE_TEMP_C = 5.0
+FORCING_BASE_TEMP_C = DEFAULT_FORCING_BASE_C
 AR_LAGS = 3  # Use the last 3 days of anomalies to predict the next day
 
 # Only generate future forecasts for these specific locations
@@ -59,18 +61,23 @@ def forecast_2026_climate():
         loc_df['Y_tmax'] = loc_df['tmax_c'] - loc_df['S_tmax']
         loc_df['Y_tmin'] = loc_df['tmin_c'] - loc_df['S_tmin']
         loc_df['is_forecast'] = False
-        
-        # If this is not one of our target cities, just keep historical data and skip forecasting
+
+        # Keep only target prediction locations in the output
         if loc not in TARGET_LOCATIONS:
-            forecasted_records.append(loc_df)
             continue
-            
+
+        # Historical rows needed for 2026 prediction window output
+        loc_2026_window = loc_df[
+            (loc_df['date'] >= PREDICTION_START_DATE) &
+            (loc_df['date'] <= FORECAST_END_DATE)
+        ].copy()
+        
         # Identify the last date of actual data we have for this location
         last_actual_date = loc_df['date'].max()
         
         if last_actual_date >= FORECAST_END_DATE:
             # We already have data past May 31st, no need to forecast
-            forecasted_records.append(loc_df)
+            forecasted_records.append(loc_2026_window)
             continue
             
         # ---------------------------------------------------------
@@ -121,15 +128,26 @@ def forecast_2026_climate():
                 
                 # Append to records
                 combined_loc_df = pd.concat([loc_df, future_df], ignore_index=True)
-                forecasted_records.append(combined_loc_df)
+                combined_2026_window = combined_loc_df[
+                    (combined_loc_df['date'] >= PREDICTION_START_DATE) &
+                    (combined_loc_df['date'] <= FORECAST_END_DATE)
+                ].copy()
+                forecasted_records.append(combined_2026_window)
         else:
-            # Not enough data to model, just append history
-            forecasted_records.append(loc_df)
+            # Not enough data to model, keep only available 2026 prediction window
+            forecasted_records.append(loc_2026_window)
 
     # ==========================================
     # 4. CLEANUP AND SAVE
     # ==========================================
     final_df = pd.concat(forecasted_records, ignore_index=True)
+
+    # Safety filter: keep only target locations and 2026 prediction window
+    final_df = final_df[
+        final_df['location'].isin(TARGET_LOCATIONS)
+        & (final_df['date'] >= PREDICTION_START_DATE)
+        & (final_df['date'] <= FORECAST_END_DATE)
+    ].copy()
     
     # Sort and clean columns
     cols_to_keep = ['location', 'date', 'year', 'doy', 'is_forecast', 'tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm', 'forcing_gdd']
@@ -138,12 +156,13 @@ def forecast_2026_climate():
         
     final_df = final_df[cols_to_keep].sort_values(by=['location', 'date']).reset_index(drop=True)
     
-    print(f"\n4. Saving Hybrid Projected Climate data to {OUTPUT_FORECAST_FILE}...")
+    print(f"\n4. Saving Projected Climate prediction window to {OUTPUT_FORECAST_FILE}...")
     final_df.to_csv(OUTPUT_FORECAST_FILE, index=False)
     
     print("\n--- 2026 Climate Forecasting Complete ---")
     forecast_only = final_df[final_df['is_forecast'] == True]
-    print(f"Total Forecasted Days for target locations: {len(forecast_only)}")
+    print(f"Total Rows in 2026 prediction dataset: {len(final_df)}")
+    print(f"Forecasted Rows in 2026 prediction dataset: {len(forecast_only)}")
     if not forecast_only.empty:
         print("\nSample Forecast Preview:")
         print(forecast_only[['location', 'date', 'tmax_c', 'tmin_c', 'prcp_mm']].head())

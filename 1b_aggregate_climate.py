@@ -13,7 +13,6 @@ NOAA_DIR = os.path.join("data", "noaa")
 STATION_METADATA_FILE = os.path.join("data", "NOAA_station_metadata.csv")
 OUTPUT_CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.csv")
 
-FORCING_BASE_TEMP_C = 5.0
 LAPSE_RATE_C_PER_M = 0.0065  # 6.5°C per 1000m
 MIN_YEAR = 1973
 
@@ -145,12 +144,9 @@ def build_aggregated_climate():
             loc_df['tmax_c'] = loc_df['tmax_raw'] - (LAPSE_RATE_C_PER_M * alt_diff)
             loc_df['tmin_c'] = loc_df['tmin_raw'] - (LAPSE_RATE_C_PER_M * alt_diff)
             loc_df['tmean_c'] = (loc_df['tmax_c'] + loc_df['tmin_c']) / 2.0
-            
-            # Calculate Growing Degree Days (GDD)
-            loc_df['forcing_gdd'] = np.maximum(loc_df['tmean_c'] - FORCING_BASE_TEMP_C, 0)
-            
+
             # Reorder columns and drop raw temps
-            loc_df = loc_df[['location', 'station_id', 'date', 'year', 'tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm', 'forcing_gdd']]
+            loc_df = loc_df[['location', 'station_id', 'date', 'year', 'tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm']]
             aggregated_records.append(loc_df)
 
     # Combine all locations into one master dataframe
