@@ -44,6 +44,13 @@ def engineer_features():
 
     print("2. Indexing climate data for faster processing...")
     climate_by_loc = {loc: group for loc, group in climate_df.groupby('location')}
+    climate_locations = set(climate_by_loc.keys())
+
+    before_count = len(bloom_df)
+    bloom_df = bloom_df[bloom_df['location'].isin(climate_locations)].copy()
+    dropped = before_count - len(bloom_df)
+    if dropped:
+        print(f"Dropped {dropped} bloom rows without climate coverage.")
 
     print("3. Extracting fixed winter and early-spring species-specific features...")
     features = []

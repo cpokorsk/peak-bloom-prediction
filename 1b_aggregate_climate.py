@@ -9,6 +9,7 @@ from phenology_config import (
     NOAA_STATION_METADATA_FILE,
     AGGREGATED_CLIMATE_FILE,
     LAPSE_RATE_C_PER_M,
+    MAX_STATION_DISTANCE_KM,
     MIN_CLIMATE_YEAR,
 )
 
@@ -48,6 +49,16 @@ def find_closest_station(row, stations_df):
         'station_elevation_m': closest_station['elevation_m']
     })
 
+
+def filter_stations_by_metadata_date(stations_df, min_year):
+    stations_df = stations_df.copy()
+    stations_df['last_date'] = pd.to_datetime(stations_df.get('last_date'), errors='coerce')
+    stations_df['first_date'] = pd.to_datetime(stations_df.get('first_date'), errors='coerce')
+
+    stations_df = stations_df[stations_df['last_date'].notna()]
+    stations_df = stations_df[stations_df['last_date'].dt.year >= min_year]
+    return stations_df
+
 # ==========================================
 # 3. AGGREGATE CLIMATE DATA
 # ==========================================
@@ -58,8 +69,12 @@ def build_aggregated_climate():
 
     site_df = pd.read_csv(SITE_METADATA_FILE)
     
-    print("2. Mapping locations to closest NOAA stations...")
+    print("2. Filtering stations with data after minimum year...")
     stations_df = pd.read_csv(STATION_METADATA_FILE)
+    stations_df = filter_stations_by_metadata_date(stations_df, MIN_YEAR)
+    print(f"Stations with data >= {MIN_YEAR}: {len(stations_df)}")
+
+    print("3. Mapping locations to closest NOAA stations...")
     
     # Haversine mapping
     tqdm.pandas(desc="Calculating Spatial Distances")
@@ -67,13 +82,21 @@ def build_aggregated_climate():
     
     # Combine site data with closest station data
     location_mapping = pd.concat([site_df, mapping_results], axis=1)
+    if MAX_STATION_DISTANCE_KM is not None:
+        before_count = len(location_mapping)
+        location_mapping = location_mapping[
+            location_mapping['distance_km'] <= MAX_STATION_DISTANCE_KM
+        ].copy()
+        dropped = before_count - len(location_mapping)
+        if dropped:
+            print(f"Dropped {dropped} locations with station distance > {MAX_STATION_DISTANCE_KM} km")
     location_mapping['alt_diff_m'] = location_mapping['alt'] - location_mapping['station_elevation_m']
     
     # Identify unique stations required
     unique_stations = location_mapping[['station_id', 'source_file']].drop_duplicates()
     print(f"\nIdentified {len(unique_stations)} unique stations needed for {len(site_df)} locations.")
 
-    print(f"\n3. Loading and adjusting raw station data (Filtering >= {MIN_YEAR})...")
+    print(f"\n4. Loading and adjusting raw station data (Filtering >= {MIN_YEAR})...")
     aggregated_records = []
 
     # Loop over the unique stations instead of locations
@@ -158,7 +181,7 @@ def build_aggregated_climate():
     if aggregated_records:
         master_climate_df = pd.concat(aggregated_records, ignore_index=True)
         
-        print(f"\n4. Saving aggregated climate data to {OUTPUT_CLIMATE_FILE}...")
+        print(f"\n5. Saving aggregated climate data to {OUTPUT_CLIMATE_FILE}...")
         os.makedirs(os.path.dirname(OUTPUT_CLIMATE_FILE), exist_ok=True)
         
         # Sort chronologically by location
