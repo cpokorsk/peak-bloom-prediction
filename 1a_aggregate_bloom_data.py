@@ -2,56 +2,16 @@ import glob
 import os
 
 import pandas as pd
+from phenology_config import (
+    AGGREGATED_BLOOM_FILE,
+    BLOOM_DIR,
+    infer_country_code_from_location,
+    get_species_for_country,
+    normalize_location,
+)
 
 
-BLOOM_DIR = os.path.join("data", "blossoms")
-OUTPUT_FILE = os.path.join("data", "model_outputs", "aggregated_bloom_data.csv")
-
-
-COUNTRY_NAME_TO_CODE = {
-    "japan": "JP",
-    "south korea": "KR",
-    "switzerland": "CH",
-    "usa": "US",
-    "canada": "CA",
-}
-
-
-LOCATION_TO_COUNTRY_CODE = {
-    "kyoto": "JP",
-    "washingtondc": "US",
-    "newyorkcity": "US",
-    "liestal": "CH",
-    "vancouver": "CA",
-}
-
-
-COUNTRY_CODE_TO_SPECIES = {
-    "US": "Prunus x yedoensis",
-    "CA": "Prunus x yedoensis",
-    "CH": "Prunus avium",
-    "JP": "Prunus x jamasakura",
-    "KR": "Prunus x yedoensis",
-}
-
-
-def infer_country_code(location: str) -> str:
-    if pd.isna(location):
-        return "UNK"
-
-    location_str = str(location).strip()
-    if not location_str:
-        return "UNK"
-
-    if location_str in LOCATION_TO_COUNTRY_CODE:
-        return LOCATION_TO_COUNTRY_CODE[location_str]
-
-    if "/" in location_str:
-        country_name = location_str.split("/", 1)[0].strip().lower()
-        if country_name in COUNTRY_NAME_TO_CODE:
-            return COUNTRY_NAME_TO_CODE[country_name]
-
-    return "UNK"
+OUTPUT_FILE = AGGREGATED_BLOOM_FILE
 
 
 def aggregate_bloom_data() -> pd.DataFrame:
@@ -76,8 +36,9 @@ def aggregate_bloom_data() -> pd.DataFrame:
         print(f"Loaded {os.path.basename(file_path)} ({len(df)} rows)")
 
     combined = pd.concat(bloom_frames, ignore_index=True)
-    combined["country_code"] = combined["location"].apply(infer_country_code)
-    combined["species"] = combined["country_code"].map(COUNTRY_CODE_TO_SPECIES).fillna("Unknown")
+    combined["location"] = combined["location"].apply(normalize_location)
+    combined["country_code"] = combined["location"].apply(infer_country_code_from_location)
+    combined["species"] = combined["country_code"].apply(get_species_for_country)
 
     ordered_columns = [
         "location",

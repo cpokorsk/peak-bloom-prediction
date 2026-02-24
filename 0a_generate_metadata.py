@@ -1,24 +1,17 @@
 import os
 import glob
 import pandas as pd
+from phenology_config import (
+    NOAA_DIR,
+    NOAA_STATION_METADATA_FILE,
+    STATION_PREFIX_TO_COUNTRY_CODE,
+    STATION_SUFFIX_TO_COUNTRY_CODE,
+)
 
 # ==========================================
 # CONFIGURATION
 # ==========================================
-# Change this to "NOAA" if your 100+ files are stored in a folder named NOAA.
-# Based on the previous steps, we'll point this at "data" for the 5 sample stations.
-NOAA_DIR = "data/noaa"
-METADATA_OUTPUT_FILE = "data/NOAA_station_metadata.csv"
-
-STATION_PREFIX_TO_COUNTRY_CODE = {
-    "JA": "JP",
-    "KS": "KR",
-    "US": "US",
-    "CA": "CA",
-    "SZ": "CH",
-    "GM": "DE",
-    "IT": "IT",
-}
+METADATA_OUTPUT_FILE = NOAA_STATION_METADATA_FILE
 
 
 def infer_country_code(station_id, station_name):
@@ -31,16 +24,7 @@ def infer_country_code(station_id, station_name):
         return "UNK"
 
     suffix = str(station_name).split(",")[-1].strip().upper()
-    suffix_to_code = {
-        "JA": "JP",
-        "KS": "KR",
-        "SZ": "CH",
-        "US": "US",
-        "CA": "CA",
-        "IT": "IT",
-        "GM": "DE",
-    }
-    return suffix_to_code.get(suffix, "UNK")
+    return STATION_SUFFIX_TO_COUNTRY_CODE.get(suffix, "UNK")
 
 
 def extract_station_records(file_path):

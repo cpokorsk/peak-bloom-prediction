@@ -3,18 +3,23 @@ import math
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from phenology_config import (
+    BLOSSOM_SITE_METADATA_FILE,
+    NOAA_DIR,
+    NOAA_STATION_METADATA_FILE,
+    AGGREGATED_CLIMATE_FILE,
+    LAPSE_RATE_C_PER_M,
+    MIN_CLIMATE_YEAR,
+)
 
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
 # We use the metadata file generated in the previous step
-SITE_METADATA_FILE = os.path.join("data", "model_outputs", "blossom_site_metadata.csv")
-NOAA_DIR = os.path.join("data", "noaa")
-STATION_METADATA_FILE = os.path.join("data", "NOAA_station_metadata.csv")
-OUTPUT_CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.csv")
-
-LAPSE_RATE_C_PER_M = 0.0065  # 6.5°C per 1000m
-MIN_YEAR = 1973
+SITE_METADATA_FILE = BLOSSOM_SITE_METADATA_FILE
+STATION_METADATA_FILE = NOAA_STATION_METADATA_FILE
+OUTPUT_CLIMATE_FILE = AGGREGATED_CLIMATE_FILE
+MIN_YEAR = MIN_CLIMATE_YEAR
 
 # ==========================================
 # 2. HELPER FUNCTIONS

@@ -3,22 +3,29 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from statsmodels.tsa.ar_model import AutoReg
-from phenology_config import DEFAULT_FORCING_BASE_C
+from phenology_config import (
+    AGGREGATED_CLIMATE_FILE,
+    PROJECTED_CLIMATE_FILE,
+    TARGET_YEAR,
+    WINTER_START_MONTH_DAY,
+    FORECAST_END_MONTH_DAY,
+    DEFAULT_FORCING_BASE_C,
+    AR_LAGS,
+    TARGET_PREDICTION_LOCATIONS,
+    BASELINE_START_YEAR,
+    normalize_location,
+)
 
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
-CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.csv")
-OUTPUT_FORECAST_FILE = os.path.join("data", "model_outputs", "projected_climate_2026.csv")
+CLIMATE_FILE = AGGREGATED_CLIMATE_FILE
+OUTPUT_FORECAST_FILE = PROJECTED_CLIMATE_FILE
 
-TARGET_YEAR = 2026
-PREDICTION_START_DATE = pd.to_datetime(f"{TARGET_YEAR-1}-10-01")
-FORECAST_END_DATE = pd.to_datetime(f"{TARGET_YEAR}-05-31")
+PREDICTION_START_DATE = pd.to_datetime(f"{TARGET_YEAR-1}-{WINTER_START_MONTH_DAY}")
+FORECAST_END_DATE = pd.to_datetime(f"{TARGET_YEAR}-{FORECAST_END_MONTH_DAY}")
 FORCING_BASE_TEMP_C = DEFAULT_FORCING_BASE_C
-AR_LAGS = 3  # Use the last 3 days of anomalies to predict the next day
-
-# Only generate future forecasts for these specific locations
-TARGET_LOCATIONS = ["washingtondc", "kyoto", "liestal", "vancouver", "nyc"]
+TARGET_LOCATIONS = TARGET_PREDICTION_LOCATIONS
 
 # ==========================================
 # 2. TIME SERIES FORECASTING FUNCTION
@@ -30,14 +37,14 @@ def forecast_2026_climate():
 
     df = pd.read_csv(CLIMATE_FILE)
     df['date'] = pd.to_datetime(df['date'])
+    df['location'] = df['location'].apply(normalize_location)
     df['doy'] = df['date'].dt.dayofyear
     
     # Sort chronologically
     df = df.sort_values(by=['location', 'date']).reset_index(drop=True)
 
     print("2. Calculating Deterministic Seasonal Components (Historical DOY Averages)...")
-    # We use a 20-year window to capture modern climate normals (2005-2025)
-    baseline_df = df[(df['year'] >= 2005) & (df['year'] < TARGET_YEAR)]
+    baseline_df = df[(df['year'] >= BASELINE_START_YEAR) & (df['year'] < TARGET_YEAR)]
     
     seasonal_components = baseline_df.groupby(['location', 'doy']).agg({
         'tmax_c': 'mean',

@@ -4,20 +4,30 @@ import pandas as pd
 import statsmodels.formula.api as smf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error
+from phenology_config import (
+    AGGREGATED_BLOOM_FILE,
+    AGGREGATED_CLIMATE_FILE,
+    PROJECTED_CLIMATE_FILE,
+    FINAL_PREDICTIONS_FILE,
+    HOLDOUT_LOCATIONS,
+    MIN_MODEL_YEAR,
+    EARLY_SPRING_END_MONTH_DAY,
+    WINTER_START_MONTH_DAY,
+    WINTER_END_MONTH_DAY,
+    TARGET_YEAR,
+    TARGET_PREDICTION_LOCATIONS,
+    get_species_thresholds,
+    normalize_location,
+)
 
 # ==========================================
 # 1. CONFIGURATION
 # ==========================================
-BLOOM_FILE = os.path.join("data", "model_outputs", "aggregated_bloom_data.csv")
-CLIMATE_FILE = os.path.join("data", "model_outputs", "aggregated_climate_data.csv")
-FORECAST_FILE = os.path.join("data", "model_outputs", "projected_climate_2026.csv")
-OUTPUT_PREDICTIONS = os.path.join("data", "model_outputs", "final_2026_predictions.csv")
-
-HOLDOUT_LOCATIONS = ["vancouver", "nyc", "newyorkcity"]
-EARLY_SPRING_END_DOY = 74  # Roughly March 15th (Predictors must be calculated before bloom)
-CHILL_TEMP_C = 4.3
-FORCING_BASE_C = 5.0
-MIN_YEAR = 1974
+BLOOM_FILE = AGGREGATED_BLOOM_FILE
+CLIMATE_FILE = AGGREGATED_CLIMATE_FILE
+FORECAST_FILE = PROJECTED_CLIMATE_FILE
+OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE
+MIN_YEAR = MIN_MODEL_YEAR
 
 # ==========================================
 # 2. FEATURE ENGINEERING (STRICT NO-LEAKAGE)
@@ -32,6 +42,10 @@ def build_predictive_features(bloom_df, climate_df, is_future=False):
         loc = row['location']
         year = row['year']
         b_doy = row.get('bloom_doy', np.nan) # NaN for 2026 forecast
+        species = row.get('species', 'Unknown')
+        thresholds = get_species_thresholds(species)
+        chill_temp_c = thresholds['chill_temp_c']
+        forcing_base_c = thresholds['forcing_base_c']
         
         if loc not in climate_by_loc:
             continue
@@ -40,7 +54,7 @@ def build_predictive_features(bloom_df, climate_df, is_future=False):
         
         # 1. Early Spring Window (Jan 1 to March 15)
         jan1 = pd.to_datetime(f"{year}-01-01")
-        mar15 = pd.to_datetime(f"{year}-03-15")
+        mar15 = pd.to_datetime(f"{year}-{EARLY_SPRING_END_MONTH_DAY}")
         spring_window = loc_climate[(loc_climate['date'] >= jan1) & (loc_climate['date'] <= mar15)]
         
         if spring_window.empty:
@@ -48,19 +62,19 @@ def build_predictive_features(bloom_df, climate_df, is_future=False):
             
         early_temp = spring_window['tmax_c'].mean()
         early_prcp = spring_window['prcp_mm'].sum()
-        early_gdd = np.maximum(spring_window['tmean_c'] - FORCING_BASE_C, 0).sum()
+        early_gdd = np.maximum(spring_window['tmean_c'] - forcing_base_c, 0).sum()
         
         # 2. Winter Chill Window (Oct 1 to Dec 31 of previous year)
-        chill_start = pd.to_datetime(f"{year-1}-10-01")
-        chill_end = pd.to_datetime(f"{year-1}-12-31")
+        chill_start = pd.to_datetime(f"{year-1}-{WINTER_START_MONTH_DAY}")
+        chill_end = pd.to_datetime(f"{year-1}-{WINTER_END_MONTH_DAY}")
         chill_window = loc_climate[(loc_climate['date'] >= chill_start) & (loc_climate['date'] <= chill_end)]
         
-        chill_days = (chill_window['tmean_c'] <= CHILL_TEMP_C).sum() if not chill_window.empty else np.nan
+        chill_days = (chill_window['tmean_c'] <= chill_temp_c).sum() if not chill_window.empty else np.nan
         
         features.append({
             'location': loc,
             'year': year,
-            'species': row.get('species', 'Unknown').replace(" ", "_"), # Format for formula API
+            'species': species,
             'alt': row['alt'],
             'early_spring_temp': early_temp,
             'early_spring_prcp': early_prcp,
@@ -78,8 +92,10 @@ def main():
     print("--- Loading Data ---")
     bloom_df = pd.read_csv(BLOOM_FILE)
     bloom_df = bloom_df[bloom_df['year'] >= MIN_YEAR]
+    bloom_df['location'] = bloom_df['location'].apply(normalize_location)
     climate_df = pd.read_csv(CLIMATE_FILE)
     climate_df['date'] = pd.to_datetime(climate_df['date'])
+    climate_df['location'] = climate_df['location'].apply(normalize_location)
     
     # Generate features for historical data
     df = build_predictive_features(bloom_df, climate_df)
@@ -87,7 +103,7 @@ def main():
     
     print("\n--- Splitting Data ---")
     # 1. Separate the Holdout Test Set (Vancouver & NYC)
-    holdout_mask = df['location'].isin(HOLDOUT_LOCATIONS)
+    holdout_mask = df['location'].isin(set(HOLDOUT_LOCATIONS))
     df_holdout = df[holdout_mask].copy()
     df_main = df[~holdout_mask].copy()
     
@@ -125,9 +141,13 @@ def main():
     # Load our 2026 projected climate
     forecast_climate = pd.read_csv(FORECAST_FILE)
     forecast_climate['date'] = pd.to_datetime(forecast_climate['date'])
+    forecast_climate['location'] = forecast_climate['location'].apply(normalize_location)
     
     # Create dummy bloom records for 2026 to feed into our feature extractor
-    target_locations = forecast_climate['location'].unique()
+    target_locations = [
+        loc for loc in TARGET_PREDICTION_LOCATIONS
+        if loc in set(forecast_climate['location'].unique())
+    ]
     dummy_bloom = []
     for loc in target_locations:
         # Get species and alt from historical data
@@ -137,7 +157,7 @@ def main():
         
         dummy_bloom.append({
             'location': loc,
-            'year': 2026,
+            'year': TARGET_YEAR,
             'species': species,
             'alt': alt
         })
