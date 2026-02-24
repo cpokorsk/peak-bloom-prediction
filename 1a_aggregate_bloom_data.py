@@ -5,6 +5,7 @@ import pandas as pd
 from phenology_config import (
     AGGREGATED_BLOOM_FILE,
     BLOOM_DIR,
+    dedupe_bloom_sources,
     infer_country_code_from_location,
     get_species_for_country,
     normalize_location,
@@ -37,6 +38,7 @@ def aggregate_bloom_data() -> pd.DataFrame:
 
     combined = pd.concat(bloom_frames, ignore_index=True)
     combined["location"] = combined["location"].apply(normalize_location)
+    combined = dedupe_bloom_sources(combined)
     combined["country_code"] = combined["location"].apply(infer_country_code_from_location)
     combined["species"] = combined["country_code"].apply(get_species_for_country)
 

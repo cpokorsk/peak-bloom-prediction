@@ -35,6 +35,8 @@ FORECAST_END_MONTH_DAY = "05-31"
 TARGET_PREDICTION_LOCATIONS = ["washingtondc", "kyoto", "liestal", "vancouver", "newyorkcity"]
 LOCATION_ALIASES = {
     "nyc": "newyorkcity",
+    "japan/kyoto": "kyoto",
+    "switzerland/liestal": "liestal",
 }
 HOLDOUT_LOCATIONS = ["vancouver", "newyorkcity"]
 
@@ -63,6 +65,11 @@ COUNTRY_CODE_TO_SPECIES = {
     "CH": "Prunus avium",
     "JP": "Prunus x jamasakura",
     "KR": "Prunus x yedoensis",
+}
+
+LOCATION_SOURCE_PREFERENCE = {
+    "kyoto": ["kyoto.csv", "japan.csv"],
+    "liestal": ["liestal.csv", "meteoswiss.csv"],
 }
 
 STATION_PREFIX_TO_COUNTRY_CODE = {
@@ -131,3 +138,26 @@ def infer_country_code_from_location(location_name):
 
 def get_species_for_country(country_code):
     return COUNTRY_CODE_TO_SPECIES.get(country_code, DEFAULT_SPECIES)
+
+
+def dedupe_bloom_sources(df, location_col="location", year_col="year", source_col="source_file"):
+    if source_col not in df.columns:
+        return df
+
+    df = df.copy()
+    df["_location_norm"] = df[location_col].apply(normalize_location)
+
+    def priority(row):
+        prefs = LOCATION_SOURCE_PREFERENCE.get(row["_location_norm"], [])
+        if not prefs:
+            return len(prefs)
+        try:
+            return prefs.index(str(row[source_col]))
+        except ValueError:
+            return len(prefs)
+
+    df["_source_priority"] = df.apply(priority, axis=1)
+    df = df.sort_values(["_location_norm", year_col, "_source_priority", source_col])
+
+    deduped = df.drop_duplicates(subset=["_location_norm", year_col], keep="first")
+    return deduped.drop(columns=["_location_norm", "_source_priority"])

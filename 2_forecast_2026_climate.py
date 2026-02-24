@@ -9,7 +9,6 @@ from phenology_config import (
     TARGET_YEAR,
     WINTER_START_MONTH_DAY,
     FORECAST_END_MONTH_DAY,
-    DEFAULT_FORCING_BASE_C,
     AR_LAGS,
     TARGET_PREDICTION_LOCATIONS,
     BASELINE_START_YEAR,
@@ -24,7 +23,6 @@ OUTPUT_FORECAST_FILE = PROJECTED_CLIMATE_FILE
 
 PREDICTION_START_DATE = pd.to_datetime(f"{TARGET_YEAR-1}-{WINTER_START_MONTH_DAY}")
 FORECAST_END_DATE = pd.to_datetime(f"{TARGET_YEAR}-{FORECAST_END_MONTH_DAY}")
-FORCING_BASE_TEMP_C = DEFAULT_FORCING_BASE_C
 TARGET_LOCATIONS = TARGET_PREDICTION_LOCATIONS
 
 # ==========================================
@@ -55,8 +53,12 @@ def forecast_2026_climate():
     print(f"3. Forecasting {TARGET_YEAR} daily weather via AR(p) on anomalies...")
     forecasted_records = []
 
-    locations = df['location'].unique()
-    
+    available_locations = set(df['location'].unique())
+    locations = [loc for loc in TARGET_LOCATIONS if loc in available_locations]
+    missing_locations = [loc for loc in TARGET_LOCATIONS if loc not in available_locations]
+    if missing_locations:
+        print(f"Warning: Missing climate data for target locations: {', '.join(missing_locations)}")
+
     for loc in tqdm(locations, desc="Modeling Locations"):
         loc_df = df[df['location'] == loc].copy()
         loc_seasonal = seasonal_components[seasonal_components['location'] == loc]
@@ -131,7 +133,6 @@ def forecast_2026_climate():
                 
                 # Calculate standard metrics
                 future_df['tmean_c'] = (future_df['tmax_c'] + future_df['tmin_c']) / 2.0
-                future_df['forcing_gdd'] = np.maximum(future_df['tmean_c'] - FORCING_BASE_TEMP_C, 0)
                 
                 # Append to records
                 combined_loc_df = pd.concat([loc_df, future_df], ignore_index=True)
@@ -157,7 +158,7 @@ def forecast_2026_climate():
     ].copy()
     
     # Sort and clean columns
-    cols_to_keep = ['location', 'date', 'year', 'doy', 'is_forecast', 'tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm', 'forcing_gdd']
+    cols_to_keep = ['location', 'date', 'year', 'doy', 'is_forecast', 'tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm']
     if 'station_id' in final_df.columns:
         cols_to_keep.insert(1, 'station_id')
         
