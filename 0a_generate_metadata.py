@@ -42,25 +42,43 @@ def extract_station_records(file_path):
     selected_cols = ['STATION', 'LATITUDE', 'LONGITUDE', 'ELEVATION']
     if 'NAME' in columns:
         selected_cols.append('NAME')
+    if 'DATE' in columns:
+        selected_cols.append('DATE')
 
     records_by_station = {}
     for chunk in pd.read_csv(file_path, usecols=selected_cols, chunksize=200000):
         chunk = chunk.dropna(subset=['STATION'])
-        chunk = chunk.drop_duplicates(subset=['STATION'])
+        chunk['date'] = pd.to_datetime(chunk.get('DATE'), errors='coerce')
 
-        for row in chunk.itertuples(index=False):
-            station_id = str(row.STATION)
-            if station_id not in records_by_station:
-                records_by_station[station_id] = {
+        for station_id, station_chunk in chunk.groupby(chunk['STATION'].astype(str)):
+            station_info = records_by_station.get(station_id)
+
+            if station_info is None:
+                first_row = station_chunk.iloc[0]
+                station_info = {
                     'station_id': station_id,
-                    'country_code': infer_country_code(station_id, row.NAME if hasattr(row, 'NAME') else None),
+                    'country_code': infer_country_code(station_id, first_row.NAME if 'NAME' in station_chunk.columns else None),
                     'source_name': source_name,
                     'source_file': source_file,
-                    'lat': row.LATITUDE,
-                    'lon': row.LONGITUDE,
-                    'elevation_m': row.ELEVATION,
-                    'name': row.NAME if hasattr(row, 'NAME') else "Unknown"
+                    'lat': first_row.LATITUDE,
+                    'lon': first_row.LONGITUDE,
+                    'elevation_m': first_row.ELEVATION,
+                    'name': first_row.NAME if 'NAME' in station_chunk.columns else "Unknown",
+                    'first_date': None,
+                    'last_date': None,
                 }
+
+            if 'date' in station_chunk.columns:
+                min_date = station_chunk['date'].min()
+                max_date = station_chunk['date'].max()
+                if pd.notna(min_date):
+                    current_min = station_info['first_date']
+                    station_info['first_date'] = min_date if current_min is None or min_date < current_min else current_min
+                if pd.notna(max_date):
+                    current_max = station_info['last_date']
+                    station_info['last_date'] = max_date if current_max is None or max_date > current_max else current_max
+
+            records_by_station[station_id] = station_info
 
     return list(records_by_station.values()), None
 
@@ -94,7 +112,9 @@ def generate_metadata():
     if metadata_records:
         metadata_df = pd.DataFrame(metadata_records)
         metadata_df = metadata_df.drop_duplicates(subset=['station_id']).sort_values('station_id').reset_index(drop=True)
-        metadata_df = metadata_df[['station_id', 'country_code', 'source_name', 'source_file', 'lat', 'lon', 'elevation_m', 'name']]
+        metadata_df = metadata_df[['station_id', 'country_code', 'source_name', 'source_file', 'lat', 'lon', 'elevation_m', 'name', 'first_date', 'last_date']]
+        metadata_df['first_date'] = pd.to_datetime(metadata_df['first_date'], errors='coerce').dt.date
+        metadata_df['last_date'] = pd.to_datetime(metadata_df['last_date'], errors='coerce').dt.date
         metadata_df['source_file'] = metadata_df['source_file'].astype(str).str.strip()
         metadata_df.to_csv(METADATA_OUTPUT_FILE, index=False)
 
