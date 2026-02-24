@@ -68,6 +68,14 @@ COUNTRY_CODE_TO_SPECIES = {
     "KR": "Prunus x yedoensis",
 }
 
+COUNTRY_CODE_TO_CONTINENT = {
+    "US": "North America",
+    "CA": "North America",
+    "CH": "Europe",
+    "JP": "Asia",
+    "KR": "Asia",
+}
+
 LOCATION_SOURCE_PREFERENCE = {
     "kyoto": ["kyoto.csv", "japan.csv"],
     "liestal": ["liestal.csv", "meteoswiss.csv"],
@@ -139,6 +147,10 @@ def infer_country_code_from_location(location_name):
 
 def get_species_for_country(country_code):
     return COUNTRY_CODE_TO_SPECIES.get(country_code, DEFAULT_SPECIES)
+
+
+def get_continent_for_country(country_code):
+    return COUNTRY_CODE_TO_CONTINENT.get(country_code, "Unknown")
 
 
 def dedupe_bloom_sources(df, location_col="location", year_col="year", source_col="source_file"):

@@ -180,12 +180,38 @@ def build_aggregated_climate():
     # Combine all locations into one master dataframe
     if aggregated_records:
         master_climate_df = pd.concat(aggregated_records, ignore_index=True)
+
+        def fill_short_gaps(series, max_gap):
+            is_na = series.isna()
+            if not is_na.any():
+                return series
+
+            gap_groups = (is_na != is_na.shift()).cumsum()
+            gap_sizes = is_na.groupby(gap_groups).transform('sum')
+            short_gap_mask = is_na & (gap_sizes <= max_gap)
+
+            interpolated = series.interpolate(method='linear', limit_direction='both')
+            filled = series.copy()
+            filled[short_gap_mask] = interpolated[short_gap_mask]
+            return filled
         
         print(f"\n5. Saving aggregated climate data to {OUTPUT_CLIMATE_FILE}...")
         os.makedirs(os.path.dirname(OUTPUT_CLIMATE_FILE), exist_ok=True)
         
         # Sort chronologically by location
         master_climate_df = master_climate_df.sort_values(by=['location', 'date']).reset_index(drop=True)
+
+        # Fill short temperature gaps (<= 3 days) per location
+        max_gap_days = 3
+        master_climate_df['tmax_c'] = (
+            master_climate_df.groupby('location', group_keys=False)['tmax_c']
+            .apply(lambda s: fill_short_gaps(s, max_gap_days))
+        )
+        master_climate_df['tmin_c'] = (
+            master_climate_df.groupby('location', group_keys=False)['tmin_c']
+            .apply(lambda s: fill_short_gaps(s, max_gap_days))
+        )
+        master_climate_df['tmean_c'] = (master_climate_df['tmax_c'] + master_climate_df['tmin_c']) / 2.0
         master_climate_df.to_csv(OUTPUT_CLIMATE_FILE, index=False)
         
         print("\n--- Aggregation Complete ---")

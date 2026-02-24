@@ -163,6 +163,9 @@ def forecast_2026_climate():
         cols_to_keep.insert(1, 'station_id')
         
     final_df = final_df[cols_to_keep].sort_values(by=['location', 'date']).reset_index(drop=True)
+
+    numeric_cols = ['tmax_c', 'tmin_c', 'tmean_c', 'prcp_mm']
+    final_df[numeric_cols] = final_df[numeric_cols].round(3)
     
     print(f"\n4. Saving Projected Climate prediction window to {OUTPUT_FORECAST_FILE}...")
     final_df.to_csv(OUTPUT_FORECAST_FILE, index=False)
