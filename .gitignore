@@ -15,6 +15,8 @@
 build/
 pdfs/
 
+.old/noaa/
+
 # LaTeX build artifacts
 *.aux
 *.log
@@ -29,3 +31,47 @@ pdfs/
 *.snm
 *.vrb
 
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Python virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Python packaging/build outputs
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Quarto generated artifacts/cache
+.quarto/
+.quarto-cache/
+_freeze/
+*_files/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+
+__pycache__/1b_aggregate_climate.cpython-314.pyc
+data/model_outputs/aggregated_climate_data.csv

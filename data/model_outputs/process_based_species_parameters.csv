@@ -1,0 +1,4 @@
+species,chill_temp_c,forcing_base_c,chill_requirement,forcing_requirement,calibration_mae_days,calibration_event_count
+Prunus avium,4.3,4.0,35,185.803,3.422222222222222,45
+Prunus x jamasakura,5.0,5.0,55,171.042,1.9090909090909092,11
+Prunus x yedoensis,5.0,5.0,70,150.41790000000003,3.590909090909091,22

@@ -1,0 +1,6 @@
+location,predicted_date,predicted_doy,predicted_doy_std,90_ci_lower,90_ci_upper
+kyoto,Apr 09,99.6,5.9,89.9,109.2
+liestal,Apr 17,107.7,6.0,97.8,117.6
+newyorkcity,Apr 18,108.9,6.1,98.9,119.0
+vancouver,Apr 11,101.2,6.6,90.4,112.1
+washingtondc,Apr 11,101.5,5.9,91.7,111.3

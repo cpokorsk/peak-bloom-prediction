@@ -1,0 +1,325 @@
+---
+title: "Peak Bloom Prediction Pipeline Walkthrough"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Executive Summary
+
+The timing of spring phenological events, particularly the peak bloom of cherry blossoms, serves as a sensitive indicator of local climate change and interannual weather variability. Accurate forecasts of these events are essential for cultural, economic, and scientific purposes. This study presents a reproducible forecasting pipeline designed to predict the 2026 peak cherry blossom bloom, reported as both day-of-year (DOY) and calendar date, across five geographically diverse locations.
+
+The primary biological hypothesis posits that bloom timing is mainly determined by late-winter and early-spring temperatures, with additional influences from precipitation, winter chill, and species genetics. To enhance the accuracy of climate data, temperature values for each site are adjusted according to the altitude difference between the meteorological station and the blossom location. Feature engineering incorporates biologically meaningful climate summaries, including early-spring temperature statistics (mean and maximum daily temperatures), cumulative pre-bloom precipitation, and chill-day variables that quantify cold exposure required to break endodormancy. Species and continental indicators are also included to account for systematic differences, thereby supporting reliable predictions under changing climate conditions.
+
+Given the inherent model risk in ecological forecasting, we tested a multi-model ensemble integrating several algorithm types. Linear models (Ordinary Least Squares, Ridge, Lasso, Bayesian Ridge, and a weighted linear model) provided interpretable baselines and broad trend identification. Non-linear methods (Gradient Boosting Quantile Regression and Random Forests) and time-series models (ARIMAX) were also evaluated, but these underperformed according to MAE, RMSE, and $R^2$ metrics. Process-based phenological models were used to impose biological constraints. Ultimately, the weighted linear model and regularized linear models were emphasized, as they consistently outperformed non-linear and time-series approaches.
+
+Since no single model performs best everywhere, we use block-based cross-validation for evaluation. For the final holdout, we use the most recent 20 years as an unseen test set. Base models are ranked by Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and $R^2$. Only the time-weighted linear model (WLM), OLS, Ridge, Bayesian Ridge, and Lasso are used in the final stacked ensemble, which is combined by a RidgeCV meta-learner trained exclusively on out-of-sample predictions.
+
+To support decision-making, point forecasts are provided with statistically calibrated prediction intervals. We analyze residuals from holdout predictions to estimate empirical error quantiles and generate reliable bounds for each location. The entire framework follows open-science principles. Implemented as a Quarto document, the pipeline installs dependencies, trains the ensemble, validates outputs, and renders final prediction tables, allowing independent reviewers to easily reproduce the 2026 results.
+
+## Overview
+
+This report runs the full modeling pipeline end-to-end, then displays the final stacked ensemble predictions.
+
+## 0) Environment Bootstrap
+
+```{python}
+#| echo: false
+#| include: false
+#| warning: false
+#| message: false
+
+from pathlib import Path
+import os
+import subprocess
+import sys
+import warnings
+
+ROOT = Path.cwd()
+PYTHON = sys.executable
+REQ_FILE = ROOT / "requirements.txt"
+
+# Suppress known Windows asyncio deprecation warning from upstream Jupyter stack
+warnings.filterwarnings(
+    "ignore",
+    message=r".*asyncio\.set_event_loop_policy.*deprecated.*",
+    category=DeprecationWarning,
+)
+os.environ["PYTHONWARNINGS"] = (
+    "ignore:.*asyncio\\.set_event_loop_policy.*deprecated.*:DeprecationWarning"
+)
+
+if not REQ_FILE.exists():
+    raise FileNotFoundError(f"Missing requirements file: {REQ_FILE}")
+
+subprocess.run(
+    [PYTHON, "-m", "pip", "install", "-r", str(REQ_FILE)],
+    cwd=ROOT,
+    check=True,
+    stdout=subprocess.DEVNULL,
+    stderr=subprocess.DEVNULL,
+)
+```
+
+### Methodology
+
+The pipeline employs a **stacked ensemble** approach combining multiple model types:
+
+**Statistical Models:**
+- Linear OLS regression
+- Time-weighted linear model (exponential decay, 20-year half-life)
+- Ridge and Lasso regularization
+- Bayesian Ridge regression
+- Gradient Boosting with quantile regression
+
+**Time Series Models:**
+- ARIMAX (SARIMAX with exogenous climate variables)
+
+**Process-Based Phenology Models:**
+- Thermal time accumulation model (chill + forcing requirements)
+- DTS (Development rate Temperature Summation) with Arrhenius function
+
+**Machine Learning:**
+- Random Forest regression
+
+### Validation Approach
+
+The pipeline supports two validation modes (configured via `USE_CV_FOLDS` in `phenology_config.py`):
+
+1. **Simple Holdout** (default): Last 20 years reserved as test set
+2. **Year-Block Cross-Validation**: 5 contiguous temporal folds (1961-2026 divided into 14-13-13-13-13 year blocks)
+
+CV provides more robust estimates (198 samples vs 64) and prevents overfitting to recent patterns, though older data may be less relevant due to climate change.
+
+### Model Selection & Ensemble
+
+- **Step 5a**: `5_model_selection.py` ranks models by composite score (MAE + RMSE + R² ranks)
+- **Step 5b**: `5_stacked_ensemble.py` trains RidgeCV meta-model on top 5 base models
+- Meta-model learns optimal weights rather than simple averaging
+- 90% prediction intervals calibrated from holdout residuals
+
+## 1) Setup
+
+```{python}
+from pathlib import Path
+import subprocess
+import sys
+import pandas as pd
+
+ROOT = Path.cwd()
+PYTHON = sys.executable
+```
+
+## 2) Define Pipeline Steps
+
+```{python}
+pipeline_steps = [
+    "0a_generate_metadata.py",
+    "0b_generate_blossom_site_metadata.py",
+    "1a_aggregate_bloom_data.py",
+    "1b_aggregate_climate.py",
+    "2_forecast_2026_climate.py",
+    "3_feature_engineering.py",
+    "4_lm_train_and_predict.py",
+    "4_weighted_lm_train_and_predict.py",
+    "4_ridge_lasso_train_and_predict.py",
+    "4_bayseian_ridge_train_and_predict.py",
+    "4_gradient_boosting_quantile_train_and_predict.py",
+    "4_arimax_prediction_model.py",
+    "4_random_forest_train_and_predict.py",
+    "4_process_based_thermal_prediction.py",
+    "4_process_based_dts_model.py",
+    "5_model_selection.py",
+    "5_stacked_ensemble.py",
+]
+
+for step in pipeline_steps:
+    if not (ROOT / step).exists():
+        raise FileNotFoundError(f"Missing pipeline script: {step}")
+
+print(f"Validated {len(pipeline_steps)} pipeline scripts.")
+```
+
+## 3) Run Full Pipeline
+
+```{python}
+#| echo: false
+#| include: false
+#| warning: false
+#| message: false
+
+RUN_FULL_PIPELINE = True
+
+if RUN_FULL_PIPELINE:
+    for idx, script in enumerate(pipeline_steps, start=1):
+        process = subprocess.Popen(
+            [PYTHON, script],
+            cwd=ROOT,
+            text=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+        )
+        _, stderr_text = process.communicate()
+        if process.returncode != 0:
+            err_msg = stderr_text.strip() if stderr_text else "No stderr output captured."
+            raise RuntimeError(
+                f"Pipeline failed at step {idx}/{len(pipeline_steps)}: {script} "
+                f"(exit code {process.returncode}).\n{err_msg}"
+            )
+else:
+    pass
+```
+
+## 4) Check Key Outputs
+
+```{python}
+#| echo: false
+#| warning: false
+#| message: false
+
+from phenology_config import USE_CV_FOLDS, HOLDOUT_LAST_N_YEARS
+
+# Core pipeline outputs
+output_checks = {
+    # Model selection
+    "Model selection summary": "data/model_outputs/model_selection_metrics_summary.csv",
+    "Recommended models": "data/model_outputs/model_selection_recommended_for_ensemble.csv",
+    
+    # Ensemble outputs
+    "Stacked predictions": "data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv",
+    "Stacked weights": "data/model_outputs/stacked_ensemble_meta_model_weights.csv",
+    "Stacked metrics": "data/model_outputs/stacked_ensemble_model_metrics.csv",
+}
+
+# Add CV metrics if CV mode is enabled
+if USE_CV_FOLDS:
+    output_checks["Linear OLS CV metrics"] = "data/model_outputs/cv_metrics_linear_ols.csv"
+    output_checks["Weighted LM CV metrics"] = "data/model_outputs/cv_metrics_weighted_lm.csv"
+    output_checks["Bayesian Ridge CV metrics"] = "data/model_outputs/cv_metrics_bayesian_ridge.csv"
+    output_checks["Ridge CV metrics"] = "data/model_outputs/cv_metrics_ridge.csv"
+    output_checks["Lasso CV metrics"] = "data/model_outputs/cv_metrics_lasso.csv"
+    output_checks["ARIMAX CV metrics"] = "data/model_outputs/cv_metrics_arimax.csv"
+
+# Feature engineering outputs
+output_checks["Model features"] = "data/model_inputs/model_features.csv"
+output_checks["Feature importance"] = "data/model_outputs/feature_importance.csv"
+
+status_df = pd.DataFrame(
+    [
+        {"artifact": name, "path": rel_path, "exists": (ROOT / rel_path).exists()}
+        for name, rel_path in output_checks.items()
+    ]
+)
+
+print(f"Config: USE_CV_FOLDS={USE_CV_FOLDS}, HOLDOUT_LAST_N_YEARS={HOLDOUT_LAST_N_YEARS}")
+print(f"\nChecking {len(output_checks)} pipeline output files:\n")
+
+status_df
+```
+
+## 5) Model Selection Results
+
+### All Model Performance Rankings
+
+```{python}
+#| echo: false
+#| warning: false
+#| message: false
+
+metrics_path = ROOT / "data/model_outputs/model_selection_metrics_summary.csv"
+if not metrics_path.exists():
+    raise FileNotFoundError(f"Model selection metrics not found: {metrics_path}")
+
+metrics_df = pd.read_csv(metrics_path)
+
+# Display key columns
+display_cols = ["model", "n", "mae_days", "rmse_days", "r2", "composite_rank_score"]
+metrics_df[display_cols]
+```
+
+### Recommended Models for Ensemble
+
+The top 5 models by composite rank score are selected for the stacked ensemble:
+
+```{python}
+#| echo: false
+#| warning: false
+#| message: false
+
+recommended_path = ROOT / "data/model_outputs/model_selection_recommended_for_ensemble.csv"
+if not recommended_path.exists():
+    raise FileNotFoundError(f"Recommended models not found: {recommended_path}")
+
+recommended_df = pd.read_csv(recommended_path)
+recommended_df[["model", "mae_days", "rmse_days", "r2"]]
+```
+
+## 6) Stacked Ensemble Performance
+
+### Ensemble Metrics
+
+```{python}
+ensemble_metrics_path = ROOT / "data/model_outputs/stacked_ensemble_model_metrics.csv"
+if not ensemble_metrics_path.exists():
+    raise FileNotFoundError(f"Ensemble metrics not found: {ensemble_metrics_path}")
+
+ensemble_metrics = pd.read_csv(ensemble_metrics_path)
+
+# Show base model performance and ensemble results
+display_cols = ["model", "mae_days", "rmse_days"]
+if "mae_days" in ensemble_metrics.columns:
+    ensemble_metrics[display_cols]
+```
+
+### Meta-Model Weights
+
+The stacked ensemble learns optimal weights for each base model using Ridge regression:
+
+```{python}
+weights_path = ROOT / "data/model_outputs/stacked_ensemble_meta_model_weights.csv"
+if not weights_path.exists():
+    raise FileNotFoundError(f"Expected weights file not found: {weights_path}")
+
+weights = pd.read_csv(weights_path)
+weights
+```
+
+## 7) Final 2026 Predictions
+
+### Full Prediction Output
+
+```{python}
+final_path = ROOT / "data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv"
+if not final_path.exists():
+    raise FileNotFoundError(f"Expected final predictions file not found: {final_path}")
+
+final_pred = pd.read_csv(final_path)
+final_pred
+```
+
+### Submission Format
+
+```{python}
+final_pred[
+    ["location", "predicted_date", "predicted_doy", "90_pi_lower", "90_pi_upper"]
+].sort_values("location").reset_index(drop=True)
+```
+
+## Summary
+
+This pipeline demonstrates an end-to-end workflow for cherry blossom peak bloom prediction:
+
+1. **Data Aggregation**: Historical bloom dates + NOAA climate data
+2. **Feature Engineering**: Early spring climate summaries, species/location effects
+3. **Multi-Model Training**: 9 diverse model types with holdout validation
+4. **Model Selection**: Rank by composite performance metrics
+5. **Stacked Ensemble**: Meta-model learns optimal combination weights
+6. **2026 Predictions**: Final forecasts with 90% prediction intervals
+
+The stacked ensemble approach typically outperforms any single model by leveraging complementary strengths across statistical, process-based, and machine learning methods.
+

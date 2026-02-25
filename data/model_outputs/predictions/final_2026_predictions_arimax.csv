@@ -1,0 +1,6 @@
+location,year,predicted_doy,pi90_lower,pi90_upper,interval_halfwidth_days,predicted_date
+vancouver,2026,104.5,93.0,116.1,11.5,2026-04-14
+liestal,2026,118.3,107.1,129.4,11.2,2026-04-28
+kyoto,2026,99.9,93.2,106.6,6.7,2026-04-10
+newyorkcity,2026,104.8,93.2,116.3,11.5,2026-04-15
+washingtondc,2026,97.7,88.8,106.5,8.9,2026-04-08

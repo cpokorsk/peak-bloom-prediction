@@ -1,0 +1,12 @@
+numpy
+pandas
+scipy
+scikit-learn
+statsmodels
+matplotlib
+tqdm
+PyYAML
+jupyter
+nbclient
+nbformat
+ipykernel

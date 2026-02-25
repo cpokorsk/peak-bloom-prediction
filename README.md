@@ -1,121 +1,94 @@
 # Cherry Blossom Peak Bloom Prediction
 
-This is the official template repository for George Mason’s Department of Statistics cherry blossom peak bloom prediction competition.
+This repository contains a reproducible forecasting pipeline for the GMU cherry blossom competition, including data preparation, multi-model training, model selection, stacked ensembling, and final 2026 predictions for five target locations.
 
-This repository contains cleaned and ready-to-use data on peak bloom dates in the *data/* folder, alongside a demo prediction analysis report (*demo_analysis.qmd*).
-The demo analysis demonstrates how to load the provided data sets, plot the observed time series, and uses a very simple linear regression model to predict the peak bloom dates for the next year as well as estimate prediction intervals.
-The demo analysis requires a [working installation of R](https://cran.r-project.org) and (version ≥ 4.3 strongly suggested), an [installation of quarto](https://www.quarto.org) (e.g., as part of the RStudio IDE), as well as the `tidyverse` suite of packages.
+The project is derived from the official competition template and has been extended to a Python-first workflow with Quarto reporting.
 
-The rendered demo analysis is available at https://competition.statistics.gmu.edu/demo_analysis.html.
+## Project contents
 
-## Getting started
+- `data/`: input data and generated model outputs
+- `0*` to `5*` scripts: end-to-end pipeline steps
+- `pipeline_walkthrough.qmd`: reproducible report that installs dependencies, runs the pipeline, and renders outputs
+- `prediction_model.ipynb`: notebook version of the execution flow
+- `requirements.txt`: Python dependencies used by the pipeline and Quarto execution
 
-To start competing, you need to download the contents of this repository to your computer.
-You can do so by either
+## Quickstart
 
-a. forking this repository to your GitHub account,
-b. downloading the ZIP folder
-
-![](figures/readme/download_zip.png)
-
-c. cloning the repository to your local computer.
-
-If you choose options b. or c., you need to set up another publicly accessible GitHub repository (or on another hosting provider like GitLab, Bitbucket, etc.).
-To submit your entry for the competition, all your code and data must be accessible in a public Git repository!
-
-Below we provide the steps for forking this repository to your GitHub account and cloning the forked repository to your local computer.
-
-### Prerequisites
-
-Before you fork or clone the repository, you would need to set up Git on your system.
-There are many excellent tutorials available online on how to set up Git.
-The GitHub specific instructions can be found at https://docs.github.com/en/get-started/quickstart/set-up-git.
-
-For forking, you would also need to sign up for a GitHub account.
-
-### Forking the repository
-
-To fork this repository, locate the _Fork_ button at the top right of the page:
-
-![Fork button at the top-right of the repository](figures/readme/fork_btn.png)
-
-This will copy the repository to your GitHub account under the name _peak-bloom-prediction_.
-
-Next you need to clone the repository to your local computer.
-Navigate to **your fork** of the repository on github.com.
-The steps are the same as outlined below for cloning the repository, **but the location of the respository will be different**.
-
-More detailed instructions on how to fork a repository can be found under https://docs.github.com/en/get-started/quickstart/fork-a-repo.
-
-### Cloning the repository
-
-Whether you choose to clone this read-only repository or the forked repository under your account, you can follow these instructions to clone the repository to your local computer.
-
-1. Above the file list of the repository on GitHub.com, locate the _Code_ button:
-
-![Clone button at the top of the file list](figures/readme/code_btn.png)
-
-2. This will open a small dialog with the URLs to clone the repository.
-   Copy the URL to the Git command line interface or your favorite Git client.
-
-![Clone dialog with URLs for cloning](figures/readme/clone_box.png)
-
-3. If you use a Git client, follow it's instructions on how to clone a remote repository.
-   If you use the Git command line interface, open a terminal or command line window.
-4. Navigate to the folder/location where you want the cloned repository.
-5. Use the `git clone` command in combination with the URL from step 2.
-   If you use the original repository (not a fork), you would use the following command:
+### 1) Clone your competition repository
 
 ```sh
-$ git clone https://github.com/GMU-CherryBlossomCompetition/peak-bloom-prediction.git
+git clone <your-public-repo-url>
+cd peak-bloom-prediction
 ```
 
-6. Press **Enter**.
-   You will see something like
+### 2) Prerequisites
+
+- Python 3.10+
+- Quarto CLI installed and available on PATH
+- Git
+
+Optional (for original template/demo content):
+
+- R 4.3+
+
+### 3) Install dependencies
+
 ```sh
-#> Cloning into 'peak-bloom-prediction'...
-#> remote: Enumerating objects: 10, done.
-#> remote: Counting objects: 100% (10/10), done.
-#> remote: Compressing objects: 100% (8/8), done.
-#> remote: Total 10 (delta 0), reused 10 (delta 0), pack-reused 0
-#> Receiving objects: 100% (10/10), 10.00 KiB | 5.00 MiB/s, done.
+python -m pip install -r requirements.txt
 ```
 
-Now you have the repository cloned to your local computer and you can start coding away!
+### 4) Run the full pipeline and render report
 
-*Note:* this GitHub repository is read-only and if you clone it to your local computer you can make changes only on your local computer.
-You will not be able to *push* your changes to this GitHub repository.
-To enter the competition, you must make your repository publicly accessible!
-
-## Competition rules
-
-To enter the competition you must submit your predictions and the URL pointing to your repository via https://competition.statistics.gmu.edu.
-
-**Entries must be submitted by the end of February 28, 2025 (anywhere on earth)**.
-If it's February anywhere on earth, your submission will be considered.
-
-The predictions are judged based on the sum of the absolute differences between your predicted peak bloom dates and the publicly posted peak bloom dates:
-
-```
-| predicted_bloom_date_kyoto_2025 - actual_bloom_date_kyoto_2025 | +
-  | predicted_bloom_date_washingtondc_2025 - actual_bloom_date_washingtondc_2025 | +
-  | predicted_bloom_date_liestal_2025 - actual_bloom_date_liestal_2025 | +
-  | predicted_bloom_date_vancouver_2025 - actual_bloom_date_vancouver_2025 | +
-  | predicted_bloom_date_newyorkcity_2025 - actual_bloom_date_newyorkcity_2025 |
+```sh
+quarto render pipeline_walkthrough.qmd
 ```
 
-The prediction intervals are evaluated based on how many out of the five intervals cover the actual bloom date.
-In the case of ties, the sum of the squared lengths of the intervals is used to break the ties.
+The report bootstraps dependencies, executes the pipeline, and shows key artifacts (model rankings, ensemble metrics, and final predictions).
 
-The true bloom dates for 2025 are taken to be the dates reported by the following agencies/institutions:
+## Method summary
 
-- **Kyoto (Japan):** a local news paper from Arashiyama (See http://atmenv.envi.osakafu-u.ac.jp/aono/kyophenotemp4),
-- **Washington, D.C. (USA):** National Park Service,
-- **Liestal-Weideli (Switzerland):** MeteoSwiss,
-- **Vancouver, BC (Canada):** Vancouver Cherry Blossom Festival in collaboration with Douglas Justice, Associate Director, Curator of Collections, UBC Botanical Garden.
-- **New York City, NY (USA):** The Washington Square Park Eco Projects in collaboration with the Nature Lab.
+The modeling approach combines complementary model families:
 
-The full competition rules are available under https://competition.statistics.gmu.edu.
+- Linear/statistical: OLS, weighted OLS, Ridge, Lasso, Bayesian Ridge
+- Nonlinear ML: Gradient Boosting Quantile, Random Forest
+- Time series: ARIMAX
+- Process-based phenology: thermal model and DTS
+
+Top models are selected by composite ranking (MAE, RMSE, and \(R^2\)) and combined via a RidgeCV stacked ensemble. Prediction intervals are calibrated using holdout/CV residuals.
+
+Validation mode is controlled by `USE_CV_FOLDS` in `phenology_config.py`:
+
+- `False`: simple last-`N`-years holdout
+- `True`: year-block cross-validation
+
+## Outputs and artifacts
+
+Primary outputs are written under `data/model_outputs/`:
+
+- `model_selection_metrics_summary.csv`
+- `model_selection_recommended_for_ensemble.csv`
+- `stacked_ensemble_model_metrics.csv`
+- `stacked_ensemble_meta_model_weights.csv`
+- `predictions/final_2026_predictions_stacked_ensemble.csv`
+
+Additional holdout/CV files are produced per model depending on configuration.
+
+## Competition submission checklist (2026)
+
+Before submission, verify that all of the following are complete:
+
+1. Submit before **February 28, 2026, 23:59 AOE**.
+2. Include all **five** location predictions.
+3. Provide a **public repository** with code and data needed to reproduce results.
+4. Include a reproducible Quarto document (this repo uses `pipeline_walkthrough.qmd`).
+5. Include a **blinded abstract** of at most **500 words** describing selected features and models.
+
+Entries that cannot be reproduced or lack a coherent, sufficiently complete abstract may be rejected at organizer discretion.
+
+## Notes
+
+- Official competition portal and full rules: https://competition.statistics.gmu.edu
+- Original template repository: https://github.com/GMU-CherryBlossomCompetition/peak-bloom-prediction
 
 ## License
 

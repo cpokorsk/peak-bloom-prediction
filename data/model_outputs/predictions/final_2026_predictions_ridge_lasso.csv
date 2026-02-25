@@ -1,0 +1,6 @@
+location,predicted_date_ridge,predicted_doy_ridge,predicted_date_lasso,predicted_doy_lasso
+kyoto,Apr 09,99.3,Apr 08,98.9
+liestal,Apr 17,107.1,Apr 16,106.1
+newyorkcity,Apr 18,108.4,Apr 16,106.4
+vancouver,Apr 10,100.5,Apr 11,101.1
+washingtondc,Apr 11,101.1,Apr 10,100.7

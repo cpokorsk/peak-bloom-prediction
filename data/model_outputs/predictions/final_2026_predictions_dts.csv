@@ -1,0 +1,6 @@
+location,species,predicted_bloom_date,predicted_bloom_doy,status
+kyoto,Prunus x jamasakura,2026-03-23,82,ok
+liestal,Prunus avium,2026-04-07,97,ok
+newyorkcity,Prunus x yedoensis,2026-04-21,111,ok
+vancouver,Prunus x yedoensis,2026-04-10,100,ok
+washingtondc,Prunus x yedoensis,2026-04-06,96,ok
