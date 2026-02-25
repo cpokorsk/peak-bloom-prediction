@@ -21,6 +21,7 @@ pdfs/
 !data/noaa/
 !data/npn/
 !data/blossoms/
+!data/metadata/
 
 # LaTeX build artifacts
 *.aux
