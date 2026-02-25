@@ -1,0 +1,6 @@
+model,include_in_ensemble,n,mae_days,rmse_days,r2,mae_rank,rmse_rank,r2_rank,composite_rank_score
+weighted_lm,True,64,4.2875,4.9739,0.497,1.0,1.0,1.0,1.0
+linear_ols,True,64,4.4688,5.3027,0.4283,2.0,2.0,2.0,2.0
+ridge,True,64,4.6266,5.5408,0.3758,3.0,3.0,3.0,3.0
+bayesian_ridge,True,64,4.6547,5.5753,0.368,5.0,4.0,4.0,4.333333333333333
+lasso,True,64,4.8562,5.8565,0.3027,6.0,5.0,5.0,5.333333333333333

@@ -1,0 +1,67 @@
+location,year,actual_bloom_doy,predicted_doy,abs_error_days,model_name,species,status,observed_bloom_date,predicted_bloom_date
+vancouver,2022,86.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2022-03-27,
+vancouver,2023,97.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2023-04-07,
+vancouver,2024,83.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2024-03-23,
+vancouver,2025,93.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2025-04-03,
+liestal,2006,111.0,111.0,0.0,process_based_thermal,Prunus avium,ok,2006-04-21,2006-04-21
+liestal,2007,94.0,93.0,1.0,process_based_thermal,Prunus avium,ok,2007-04-04,2007-04-03
+liestal,2008,89.0,91.0,2.0,process_based_thermal,Prunus avium,ok,2008-03-29,2008-03-31
+liestal,2009,100.0,102.0,2.0,process_based_thermal,Prunus avium,ok,2009-04-10,2009-04-12
+liestal,2010,98.0,98.0,0.0,process_based_thermal,Prunus avium,ok,2010-04-08,2010-04-08
+liestal,2011,90.0,91.0,1.0,process_based_thermal,Prunus avium,ok,2011-03-31,2011-04-01
+liestal,2012,93.0,94.0,1.0,process_based_thermal,Prunus avium,ok,2012-04-02,2012-04-03
+liestal,2013,107.0,113.0,6.0,process_based_thermal,Prunus avium,ok,2013-04-17,2013-04-23
+liestal,2014,84.0,78.0,6.0,process_based_thermal,Prunus avium,ok,2014-03-25,2014-03-19
+liestal,2015,101.0,105.0,4.0,process_based_thermal,Prunus avium,ok,2015-04-11,2015-04-15
+liestal,2016,97.0,108.0,11.0,process_based_thermal,Prunus avium,ok,2016-04-06,2016-04-17
+liestal,2017,85.0,86.0,1.0,process_based_thermal,Prunus avium,ok,2017-03-26,2017-03-27
+liestal,2018,98.0,99.0,1.0,process_based_thermal,Prunus avium,ok,2018-04-08,2018-04-09
+liestal,2019,86.0,88.0,2.0,process_based_thermal,Prunus avium,ok,2019-03-27,2019-03-29
+liestal,2020,77.0,75.0,2.0,process_based_thermal,Prunus avium,ok,2020-03-17,2020-03-15
+liestal,2021,87.0,89.0,2.0,process_based_thermal,Prunus avium,ok,2021-03-28,2021-03-30
+liestal,2022,85.0,82.0,3.0,process_based_thermal,Prunus avium,ok,2022-03-26,2022-03-23
+liestal,2023,88.0,89.0,1.0,process_based_thermal,Prunus avium,ok,2023-03-29,2023-03-30
+liestal,2024,80.0,134.0,54.0,process_based_thermal,Prunus avium,ok,2024-03-20,2024-05-13
+liestal,2025,86.0,84.0,2.0,process_based_thermal,Prunus avium,ok,2025-03-27,2025-03-25
+kyoto,2006,98.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2006-04-08,
+kyoto,2007,97.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2007-04-07,
+kyoto,2008,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2008-04-04,
+kyoto,2009,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2009-04-05,
+kyoto,2010,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2010-04-05,
+kyoto,2011,99.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2011-04-09,
+kyoto,2012,101.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2012-04-10,
+kyoto,2013,93.0,92.0,1.0,process_based_thermal,Prunus x jamasakura,ok,2013-04-03,2013-04-02
+kyoto,2014,94.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2014-04-04,
+kyoto,2015,93.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2015-04-03,
+kyoto,2016,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2016-04-04,
+kyoto,2017,99.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2017-04-09,
+kyoto,2018,89.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2018-03-30,
+kyoto,2019,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2019-04-05,
+kyoto,2020,92.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2020-04-01,
+kyoto,2021,85.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2021-03-26,
+kyoto,2022,91.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2022-04-01,
+kyoto,2023,84.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2023-03-25,
+kyoto,2024,95.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2024-04-04,
+kyoto,2025,94.0,,,process_based_thermal,Prunus x jamasakura,not_reached,2025-04-04,
+newyorkcity,2024,88.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2024-03-28,
+newyorkcity,2025,94.0,94.0,0.0,process_based_thermal,Prunus x yedoensis,ok,2025-04-04,2025-04-04
+washingtondc,2006,89.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2006-03-30,
+washingtondc,2007,91.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2007-04-01,
+washingtondc,2008,86.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2008-03-26,
+washingtondc,2009,91.0,94.0,3.0,process_based_thermal,Prunus x yedoensis,ok,2009-04-01,2009-04-04
+washingtondc,2010,90.0,87.0,3.0,process_based_thermal,Prunus x yedoensis,ok,2010-03-31,2010-03-28
+washingtondc,2011,88.0,97.0,9.0,process_based_thermal,Prunus x yedoensis,ok,2011-03-29,2011-04-07
+washingtondc,2012,80.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2012-03-20,
+washingtondc,2013,99.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2013-04-09,
+washingtondc,2014,100.0,98.0,2.0,process_based_thermal,Prunus x yedoensis,ok,2014-04-10,2014-04-08
+washingtondc,2015,100.0,95.0,5.0,process_based_thermal,Prunus x yedoensis,ok,2015-04-10,2015-04-05
+washingtondc,2016,85.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2016-03-25,
+washingtondc,2017,84.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2017-03-25,
+washingtondc,2018,95.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2018-04-05,
+washingtondc,2019,91.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2019-04-01,
+washingtondc,2020,80.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2020-03-20,
+washingtondc,2021,87.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2021-03-28,
+washingtondc,2022,80.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2022-03-21,
+washingtondc,2023,82.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2023-03-23,
+washingtondc,2024,77.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2024-03-17,
+washingtondc,2025,87.0,,,process_based_thermal,Prunus x yedoensis,not_reached,2025-03-28,

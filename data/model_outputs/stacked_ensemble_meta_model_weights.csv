@@ -1,0 +1,6 @@
+feature,coefficient,weight_percent
+pred_weighted_lm,0.3152513234311422,36.4
+pred_linear_ols,0.26499148838491204,30.6
+pred_ridge,0.13917785419272116,16.1
+pred_bayesian_ridge,0.12708566873369,14.7
+pred_lasso,0.019354124418775476,2.2

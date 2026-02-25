@@ -1,6 +1,6 @@
 location,n_train,n_holdout,aic,holdout_mae_days,status
-kyoto,53,10,298.3563561764652,5.159999999999999,ok
-liestal,55,10,365.6581436834192,7.220000000000001,ok
-newyorkcity,0,2,,3.8999999999999986,fallback_pooled_exog
-vancouver,0,4,,14.2,fallback_pooled_exog
-washingtondc,55,10,339.8886452786983,6.859999999999999,ok
+kyoto,44,19,252.18964527912942,3.7210526315789476,ok
+liestal,45,20,312.18964160336066,7.419999999999999,ok
+newyorkcity,0,2,,4.0,fallback_pooled_exog
+vancouver,0,3,,16.466666666666665,fallback_pooled_exog
+washingtondc,45,20,280.02170886915,5.710000000000002,ok
