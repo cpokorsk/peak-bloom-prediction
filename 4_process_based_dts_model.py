@@ -10,6 +10,7 @@ from phenology_config import (
 	MODEL_OUTPUT_DIR,
 	HOLDOUT_OUTPUT_DIR,
 	PREDICTIONS_OUTPUT_DIR,
+	HOLDOUT_LAST_N_YEARS,
 	MIN_MODEL_YEAR,
 	TARGET_YEAR,
 	TARGET_PREDICTION_LOCATIONS,
@@ -33,11 +34,10 @@ OUTPUT_PARAMS_FILE = os.path.join(
 )
 OUTPUT_HOLDOUT_FILE = os.path.join(
 	HOLDOUT_OUTPUT_DIR,
-	"holdout_last10y_dts.csv",
+	f"holdout_last{HOLDOUT_LAST_N_YEARS}y_dts.csv",
 )
 
 MIN_YEAR = MIN_MODEL_YEAR
-HOLDOUT_LAST_N_YEARS = 10
 
 # DTS Model uses Arrhenius exponential rate function
 # Rate(T) = exp(a - b/T_kelvin)

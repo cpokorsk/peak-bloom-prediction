@@ -10,6 +10,7 @@ from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
     HOLDOUT_OUTPUT_DIR,
+    HOLDOUT_LAST_N_YEARS,
     MIN_MODEL_YEAR,
     TARGET_PREDICTION_LOCATIONS,
     normalize_location,
@@ -22,9 +23,8 @@ FEATURES_FILE = MODEL_FEATURES_FILE
 OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE.replace(
     ".csv", "_gradient_boosting_quantile.csv"
 )
-OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_gradient_boosting_quantile.csv")
+OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_gradient_boosting_quantile.csv")
 MIN_YEAR = MIN_MODEL_YEAR
-HOLDOUT_LAST_N_YEARS = 10
 
 PREDICTOR_COLUMNS = [
     "max_tmax_early_spring",
@@ -99,7 +99,7 @@ def main():
     df = features_df[(features_df["is_future"] == False) & (features_df["year"] >= MIN_YEAR)].copy()
     df = df.dropna(subset=["bloom_doy"] + PREDICTOR_COLUMNS)
 
-    print("\n--- Splitting Data (Last 10 Years Holdout) ---")
+    print(f"\n--- Splitting Data (Last {HOLDOUT_LAST_N_YEARS} Years Holdout) ---")
     years = sorted(df["year"].dropna().unique().tolist())
     if len(years) <= HOLDOUT_LAST_N_YEARS:
         raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
@@ -134,7 +134,7 @@ def main():
     median_model.fit(x_train, y_train)
 
     evaluate(median_model, x_train, y_train, "Median Train")
-    evaluate(median_model, x_holdout, y_holdout, "Median Holdout (Last 10 Years)")
+    evaluate(median_model, x_holdout, y_holdout, f"Median Holdout (Last {HOLDOUT_LAST_N_YEARS} Years)")
 
     lower_model = build_pipeline(
         GradientBoostingRegressor(loss="quantile", alpha=LOWER_ALPHA, **base_params)

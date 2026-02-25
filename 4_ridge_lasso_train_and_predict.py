@@ -10,6 +10,7 @@ from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
     HOLDOUT_OUTPUT_DIR,
+    HOLDOUT_LAST_N_YEARS,
     MIN_MODEL_YEAR,
     TARGET_PREDICTION_LOCATIONS,
     normalize_location,
@@ -22,9 +23,8 @@ FEATURES_FILE = MODEL_FEATURES_FILE
 OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE.replace(
     ".csv", "_ridge_lasso.csv"
 )
-OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_ridge_lasso.csv")
+OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_ridge_lasso.csv")
 MIN_YEAR = MIN_MODEL_YEAR
-HOLDOUT_LAST_N_YEARS = 10
 
 PREDICTOR_COLUMNS = [
     "mean_tmax_early_spring",
@@ -88,7 +88,7 @@ def main():
     df = features_df[(features_df["is_future"] == False) & (features_df["year"] >= MIN_YEAR)].copy()
     df = df.dropna(subset=["bloom_doy"] + PREDICTOR_COLUMNS)
 
-    print("\n--- Splitting Data (Last 10 Years Holdout) ---")
+    print(f"\n--- Splitting Data (Last {HOLDOUT_LAST_N_YEARS} Years Holdout) ---")
     years = sorted(df["year"].dropna().unique().tolist())
     if len(years) <= HOLDOUT_LAST_N_YEARS:
         raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
@@ -112,14 +112,14 @@ def main():
     ridge.fit(x_train, y_train)
 
     evaluate(ridge, x_train, y_train, "Ridge Train")
-    evaluate(ridge, x_holdout, y_holdout, "Ridge Holdout (Last 10 Years)")
+    evaluate(ridge, x_holdout, y_holdout, f"Ridge Holdout (Last {HOLDOUT_LAST_N_YEARS} Years)")
 
     print("\n--- Training Lasso ---")
     lasso = build_pipeline(LassoCV(alphas=np.logspace(-3, 1, 25), max_iter=5000))
     lasso.fit(x_train, y_train)
 
     evaluate(lasso, x_train, y_train, "Lasso Train")
-    evaluate(lasso, x_holdout, y_holdout, "Lasso Holdout (Last 10 Years)")
+    evaluate(lasso, x_holdout, y_holdout, f"Lasso Holdout (Last {HOLDOUT_LAST_N_YEARS} Years)")
 
     if not df_holdout.empty:
         holdout_output = df_holdout[["location", "year", "bloom_doy"]].copy()

@@ -1,6 +1,6 @@
 location,year,predicted_date,predicted_doy,model_type,species,status
-kyoto,2026,2026-04-07,97,process_based_thermal,Prunus x jamasakura,ok
-liestal,2026,2026-04-17,107,process_based_thermal,Prunus avium,ok
-newyorkcity,2026,2026-04-22,112,process_based_thermal,Prunus x yedoensis,ok
-vancouver,2026,2026-05-02,122,process_based_thermal,Prunus x yedoensis,ok
-washingtondc,2026,2026-04-06,96,process_based_thermal,Prunus x yedoensis,ok
+kyoto,2026,,,process_based_thermal,Prunus x jamasakura,not_reached_within_forecast_window
+liestal,2026,2026-04-20,110.0,process_based_thermal,Prunus avium,ok
+newyorkcity,2026,2026-04-24,114.0,process_based_thermal,Prunus x yedoensis,ok
+vancouver,2026,2026-05-02,122.0,process_based_thermal,Prunus x yedoensis,ok
+washingtondc,2026,2026-04-07,97.0,process_based_thermal,Prunus x yedoensis,ok

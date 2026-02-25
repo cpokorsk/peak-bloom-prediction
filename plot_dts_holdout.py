@@ -3,11 +3,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.linear_model import RidgeCV
 from sklearn.metrics import mean_absolute_error, r2_score
+from phenology_config import HOLDOUT_LAST_N_YEARS
 
 
-lm = pd.read_csv('data/model_outputs/holdout/holdout_last10y_linear_ols.csv')
-br = pd.read_csv('data/model_outputs/holdout/holdout_last10y_bayesian_ridge.csv')
-ar = pd.read_csv('data/model_outputs/holdout/holdout_last10y_arimax.csv')
+lm = pd.read_csv(f'data/model_outputs/holdout/holdout_last{HOLDOUT_LAST_N_YEARS}y_linear_ols.csv')
+br = pd.read_csv(f'data/model_outputs/holdout/holdout_last{HOLDOUT_LAST_N_YEARS}y_bayesian_ridge.csv')
+ar = pd.read_csv(f'data/model_outputs/holdout/holdout_last{HOLDOUT_LAST_N_YEARS}y_arimax.csv')
 
 holdout_df = lm[['location', 'year', 'actual_bloom_doy', 'predicted_doy']].rename(
     columns={'predicted_doy': 'pred_linear_ols'}
@@ -84,7 +85,7 @@ ax.fill_between(
 ax.set_xlabel('Observed Bloom Date (Day of Year)', fontsize=14, fontweight='bold')
 ax.set_ylabel('Expected Bloom Date (Day of Year)', fontsize=14, fontweight='bold')
 ax.set_title(
-    'Stacked Ensemble Model: Observed vs Expected\nLast 10-Year Holdout Evaluation',
+    f'Stacked Ensemble Model: Observed vs Expected\\nLast {HOLDOUT_LAST_N_YEARS}-Year Holdout Evaluation',
     fontsize=16,
     fontweight='bold',
     pad=20,

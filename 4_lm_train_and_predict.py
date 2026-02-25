@@ -7,6 +7,7 @@ from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
     HOLDOUT_OUTPUT_DIR,
+    HOLDOUT_LAST_N_YEARS,
     MIN_MODEL_YEAR,
     TARGET_PREDICTION_LOCATIONS,
     normalize_location,
@@ -17,9 +18,8 @@ from phenology_config import (
 # ==========================================
 FEATURES_FILE = MODEL_FEATURES_FILE
 OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE
-OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_linear_ols.csv")
+OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_linear_ols.csv")
 MIN_YEAR = MIN_MODEL_YEAR
-HOLDOUT_LAST_N_YEARS = 10
 
 # ==========================================
 # 2. MAIN EXECUTION
@@ -41,7 +41,7 @@ def main():
     df = features_df[(features_df['is_future'] == False) & (features_df['year'] >= MIN_YEAR)].copy()
     df = df.dropna(subset=['bloom_doy'] + required_predictors)
     
-    print("\n--- Splitting Data (Last 10 Years Holdout) ---")
+    print(f"\n--- Splitting Data (Last {HOLDOUT_LAST_N_YEARS} Years Holdout) ---")
     years = sorted(df['year'].dropna().unique().tolist())
     if len(years) <= HOLDOUT_LAST_N_YEARS:
         raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
@@ -88,7 +88,7 @@ def main():
         print(f"{name} -> MAE: {mae:.2f} days | RMSE: {rmse:.2f} days")
 
     evaluate(train, "Train Set")
-    evaluate(df_holdout, "Holdout Test Set (Last 10 Years)")
+    evaluate(df_holdout, f"Holdout Test Set (Last {HOLDOUT_LAST_N_YEARS} Years)")
 
     if not df_holdout.empty:
         holdout_preds = model.predict(df_holdout)

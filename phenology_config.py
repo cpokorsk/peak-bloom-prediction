@@ -6,24 +6,26 @@ import os
 DATA_DIR = "data"
 NOAA_DIR = os.path.join(DATA_DIR, "noaa")
 BLOOM_DIR = os.path.join(DATA_DIR, "blossoms")
+METADATA_DIR = os.path.join(DATA_DIR, "metadata")
+MODEL_INPUT_DIR = os.path.join(DATA_DIR, "model_inputs")
 MODEL_OUTPUT_DIR = os.path.join(DATA_DIR, "model_outputs")
 HOLDOUT_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "holdout")
 PREDICTIONS_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "predictions")
 
-NOAA_STATION_METADATA_FILE = os.path.join(DATA_DIR, "NOAA_station_metadata.csv")
-BLOSSOM_SITE_METADATA_FILE = os.path.join(MODEL_OUTPUT_DIR, "blossom_site_metadata.csv")
-AGGREGATED_BLOOM_FILE = os.path.join(MODEL_OUTPUT_DIR, "aggregated_bloom_data.csv")
-AGGREGATED_CLIMATE_FILE = os.path.join(MODEL_OUTPUT_DIR, "aggregated_climate_data.csv")
-PROJECTED_CLIMATE_FILE = os.path.join(MODEL_OUTPUT_DIR, "projected_climate_2026.csv")
-MODEL_FEATURES_FILE = os.path.join(MODEL_OUTPUT_DIR, "model_features.csv")
+NOAA_STATION_METADATA_FILE = os.path.join(METADATA_DIR, "NOAA_station_metadata.csv")
+BLOSSOM_SITE_METADATA_FILE = os.path.join(METADATA_DIR, "blossom_site_metadata.csv")
+AGGREGATED_BLOOM_FILE = os.path.join(MODEL_INPUT_DIR, "aggregated_bloom_data.csv")
+AGGREGATED_CLIMATE_FILE = os.path.join(MODEL_INPUT_DIR, "aggregated_climate_data.csv")
+PROJECTED_CLIMATE_FILE = os.path.join(MODEL_INPUT_DIR, "projected_climate_2026.csv")
+MODEL_FEATURES_FILE = os.path.join(MODEL_INPUT_DIR, "model_features.csv")
 FINAL_PREDICTIONS_FILE = os.path.join(PREDICTIONS_OUTPUT_DIR, "final_2026_predictions.csv")
 
 # ==========================================
 # PIPELINE PARAMS
 # ==========================================
 TARGET_YEAR = 2026
-MIN_CLIMATE_YEAR = 1973
-MIN_MODEL_YEAR = 1974
+MIN_CLIMATE_YEAR = 1960
+MIN_MODEL_YEAR = 1961
 BASELINE_START_YEAR = 2005
 
 LAPSE_RATE_C_PER_M = 0.0065
@@ -44,6 +46,7 @@ LOCATION_ALIASES = {
 HOLDOUT_LOCATIONS = ["vancouver", "newyorkcity"]
 HOLDOUT_EXTRA_COUNTRIES = ["KR", "CH", "JP"]
 HOLDOUT_PER_COUNTRY = 3
+HOLDOUT_LAST_N_YEARS = 10
 HOLDOUT_RANDOM_SEED = 42
 
 # ==========================================

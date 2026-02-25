@@ -10,15 +10,16 @@ from phenology_config import (
     MODEL_OUTPUT_DIR,
     HOLDOUT_OUTPUT_DIR,
     PREDICTIONS_OUTPUT_DIR,
+    HOLDOUT_LAST_N_YEARS,
     TARGET_PREDICTION_LOCATIONS,
     normalize_location,
 )
 
 
 HOLDOUT_FILES = {
-    "linear_ols": os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_linear_ols.csv"),
-    "bayesian_ridge": os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_bayesian_ridge.csv"),
-    "arimax": os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_arimax.csv"),
+    "linear_ols": os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_linear_ols.csv"),
+    "bayesian_ridge": os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_bayesian_ridge.csv"),
+    "arimax": os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_arimax.csv"),
 }
 
 FUTURE_FILES = {
