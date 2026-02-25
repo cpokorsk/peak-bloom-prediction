@@ -1,0 +1,8 @@
+model,mae_days,mse_days2,rmse_days,holdout_rows,holdout_start_year,holdout_end_year,pi_alpha,pi_halfwidth_days,empirical_coverage,mae_improvement_pct_vs_simple_avg,mse_improvement_vs_simple_avg,rmse_improvement_vs_simple_avg_days
+pred_weighted_lm,4.7457,29.4306,5.425,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+pred_linear_ols,4.9714,33.7846,5.8124,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+pred_bayesian_ridge,5.1143,37.3503,6.1115,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+pred_ridge,5.1229,37.3774,6.1137,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+pred_lasso,5.4971,44.1234,6.6425,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+stacked_ensemble,3.8089,19.6011,4.4273,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721
+simple_average,4.9703,34.8034,5.8994,35,2016,2025,0.1,6.4866,0.8857,23.3656,15.2023,1.4721

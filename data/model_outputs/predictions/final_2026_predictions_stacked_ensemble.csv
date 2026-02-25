@@ -1,0 +1,6 @@
+location,predicted_date,predicted_doy,90_pi_lower,90_pi_upper,interval_halfwidth_days,90_pi_lower_date,90_pi_upper_date,simple_average,stacked_ensemble,pred_weighted_lm,pred_linear_ols,pred_bayesian_ridge,pred_ridge,pred_lasso
+kyoto,Apr 02,92.8,86.3,99.3,6.486612934615744,Mar 27,Apr 09,98.2,92.80261431502198,96.7,97.3,99.3,99.1,98.6
+liestal,Apr 03,93.0,86.5,99.4,6.486612934615744,Mar 27,Apr 09,102.5,92.9534849489601,96.4,97.6,106.8,106.3,105.4
+newyorkcity,Apr 09,99.7,93.2,106.2,6.486612934615744,Apr 03,Apr 16,106.38,99.69706840488631,104.7,105.5,108.2,107.8,105.7
+vancouver,Mar 30,89.5,83.0,96.0,6.486612934615744,Mar 24,Apr 06,97.36,89.49590259607815,92.8,93.2,100.3,99.8,100.7
+washingtondc,Apr 02,92.2,85.7,98.7,6.486612934615744,Mar 26,Apr 08,98.9,92.22281709865726,96.0,96.5,101.0,100.7,100.3
