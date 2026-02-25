@@ -3,16 +3,21 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.linear_model import BayesianRidge
-from sklearn.metrics import mean_absolute_error, mean_squared_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
     HOLDOUT_OUTPUT_DIR,
+    MODEL_OUTPUT_DIR,
     HOLDOUT_LAST_N_YEARS,
     MIN_MODEL_YEAR,
     TARGET_PREDICTION_LOCATIONS,
+    USE_CV_FOLDS,
+    CV_FOLDS_FILE,
+    CV_CONFIG_FILE,
+    CV_ACTIVE_SPLIT,
     normalize_location,
 )
 
@@ -24,6 +29,7 @@ OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE.replace(
     ".csv", "_bayesian_ridge.csv"
 )
 OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_bayesian_ridge.csv")
+OUTPUT_CV_METRICS = os.path.join(MODEL_OUTPUT_DIR, "cv_metrics_bayesian_ridge.csv")
 MIN_YEAR = MIN_MODEL_YEAR
 
 PREDICTOR_COLUMNS = [
@@ -49,17 +55,85 @@ NUMERIC_FEATURES = [
 CATEGORICAL_FEATURES = ["species", "continent"]
 
 # ==========================================
-# 2. MAIN EXECUTION
+# 2. CV UTILITIES
 # ==========================================
+def load_cv_configuration():
+    if not os.path.exists(CV_FOLDS_FILE):
+        raise FileNotFoundError(f"CV folds file not found: {CV_FOLDS_FILE}\nRun 3c_year_block_folds.py first.")
+    if not os.path.exists(CV_CONFIG_FILE):
+        raise FileNotFoundError(f"CV config file not found: {CV_CONFIG_FILE}\nRun 3c_year_block_folds.py first.")
+    return pd.read_csv(CV_FOLDS_FILE), pd.read_csv(CV_CONFIG_FILE)
 
+def get_cv_splits(folds_df, config_df, active_split=None):
+    splits = []
+    split_indices = [active_split] if active_split else config_df['cv_split'].tolist()
+    for split_idx in split_indices:
+        config_row = config_df[config_df['cv_split'] == split_idx].iloc[0]
+        test_fold = config_row['test_fold']
+        train_folds = [int(f) for f in config_row['train_folds'].split(',')]
+        train_years = folds_df[folds_df['fold'].isin(train_folds)]['year'].tolist()
+        test_years = folds_df[folds_df['fold'] == test_fold]['year'].tolist()
+        splits.append({
+            'split_id': split_idx,
+            'train_years': set(train_years),
+            'test_years': set(test_years),
+            'test_fold': test_fold,
+        })
+    return splits
+
+# ==========================================
+# 3. TRAINING & EVALUATION
+# ==========================================
 def evaluate(model, x, y, label):
     if x.empty:
         return
     preds = model.predict(x)
     mae = mean_absolute_error(y, preds)
     rmse = np.sqrt(mean_squared_error(y, preds))
-    print(f"{label} -> MAE: {mae:.2f} days | RMSE: {rmse:.2f} days")
+    r2 = r2_score(y, preds)
+    print(f"{label} -> MAE: {mae:.2f} days | RMSE: {rmse:.2f} days | R²: {r2:.3f}")
 
+def train_and_evaluate_split(train_df, test_df, split_name=""):
+    x_train = train_df[PREDICTOR_COLUMNS]
+    y_train = train_df["bloom_doy"]
+    x_test = test_df[PREDICTOR_COLUMNS]
+    y_test = test_df["bloom_doy"]
+    
+    model = build_pipeline(BayesianRidge())
+    model.fit(x_train, y_train)
+    
+    train_preds = model.predict(x_train)
+    train_mae = mean_absolute_error(y_train, train_preds)
+    train_rmse = np.sqrt(mean_squared_error(y_train, train_preds))
+    train_r2 = r2_score(y_train, train_preds)
+    
+    test_preds = model.predict(x_test)
+    test_mae = mean_absolute_error(y_test, test_preds)
+    test_rmse = np.sqrt(mean_squared_error(y_test, test_preds))
+    test_r2 = r2_score(y_test, test_preds)
+    
+    print(f"{split_name}:")
+    print(f"  Train: MAE={train_mae:.2f}, RMSE={train_rmse:.2f}, R²={train_r2:.3f} (n={len(train_df)})")
+    print(f"  Test:  MAE={test_mae:.2f}, RMSE={test_rmse:.2f}, R²={test_r2:.3f} (n={len(test_df)})")
+    
+    holdout_output = test_df[["location", "year", "bloom_doy"]].copy()
+    holdout_output["predicted_doy"] = test_preds.round(1)
+    holdout_output["abs_error_days"] = (holdout_output["predicted_doy"] - holdout_output["bloom_doy"]).abs().round(1)
+    holdout_output["model_name"] = "bayesian_ridge"
+    holdout_output = holdout_output.rename(columns={"bloom_doy": "actual_bloom_doy"})
+    
+    metrics = {
+        'train_n': len(train_df),
+        'test_n': len(test_df),
+        'train_mae': round(train_mae, 3),
+        'train_rmse': round(train_rmse, 3),
+        'train_r2': round(train_r2, 3),
+        'test_mae': round(test_mae, 3),
+        'test_rmse': round(test_rmse, 3),
+        'test_r2': round(test_r2, 3),
+    }
+    
+    return model, holdout_output, metrics
 
 def build_pipeline(model):
     preprocessor = ColumnTransformer(
@@ -77,7 +151,9 @@ def build_pipeline(model):
         ]
     )
 
-
+# ==========================================
+# 4. MAIN EXECUTION
+# ==========================================
 def main():
     print("--- Loading Data ---")
     features_df = pd.read_csv(FEATURES_FILE)
@@ -88,42 +164,82 @@ def main():
     df = features_df[(features_df["is_future"] == False) & (features_df["year"] >= MIN_YEAR)].copy()
     df = df.dropna(subset=["bloom_doy"] + PREDICTOR_COLUMNS)
 
-    print(f"\n--- Splitting Data (Last {HOLDOUT_LAST_N_YEARS} Years Holdout) ---")
-    years = sorted(df["year"].dropna().unique().tolist())
-    if len(years) <= HOLDOUT_LAST_N_YEARS:
-        raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
+    if USE_CV_FOLDS:
+        print(f"\n{'='*80}")
+        print("MODE: Year-Block Cross-Validation")
+        print(f"{'='*80}")
+        
+        folds_df, config_df = load_cv_configuration()
+        splits = get_cv_splits(folds_df, config_df, active_split=CV_ACTIVE_SPLIT)
+        print(f"\nRunning {len(splits)} CV split(s)...")
+        
+        cv_metrics = []
+        all_holdout_outputs = []
+        
+        for split_info in splits:
+            split_id = split_info['split_id']
+            train_years = split_info['train_years']
+            test_years = split_info['test_years']
+            
+            train_df = df[df['year'].isin(train_years)].copy()
+            test_df = df[df['year'].isin(test_years)].copy()
+            
+            print(f"\n--- CV Split {split_id} (Test Fold {split_info['test_fold']}) ---")
+            print(f"Train years: {min(train_years)}-{max(train_years)}")
+            print(f"Test years: {min(test_years)}-{max(test_years)}")
+            
+            model, holdout_output, metrics = train_and_evaluate_split(train_df, test_df, f"Split {split_id}")
+            metrics['split_id'] = split_id
+            metrics['test_fold'] = split_info['test_fold']
+            cv_metrics.append(metrics)
+            holdout_output['cv_split'] = split_id
+            all_holdout_outputs.append(holdout_output)
+        
+        cv_metrics_df = pd.DataFrame(cv_metrics)
+        mean_metrics = cv_metrics_df[['test_mae', 'test_rmse', 'test_r2']].mean()
+        std_metrics = cv_metrics_df[['test_mae', 'test_rmse', 'test_r2']].std()
+        
+        print(f"\n{'='*80}")
+        print("CROSS-VALIDATION SUMMARY")
+        print(f"{'='*80}")
+        print(f"Test MAE:  {mean_metrics['test_mae']:.2f} ± {std_metrics['test_mae']:.2f} days")
+        print(f"Test RMSE: {mean_metrics['test_rmse']:.2f} ± {std_metrics['test_rmse']:.2f} days")
+        print(f"Test R²:   {mean_metrics['test_r2']:.3f} ± {std_metrics['test_r2']:.3f}")
+        
+        os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
+        cv_metrics_df.to_csv(OUTPUT_CV_METRICS, index=False)
+        print(f"\nCV metrics saved to: {OUTPUT_CV_METRICS}")
+        
+        all_holdout_df = pd.concat(all_holdout_outputs, ignore_index=True)
+        output_holdout_cv = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_cv_bayesian_ridge.csv")
+        os.makedirs(os.path.dirname(output_holdout_cv), exist_ok=True)
+        all_holdout_df.to_csv(output_holdout_cv, index=False)
+        print(f"Holdout predictions saved to: {output_holdout_cv}")
+        
+        print(f"\n--- Training Final Model on All Historical Data ---")
+        final_bayes = build_pipeline(BayesianRidge())
+        final_bayes.fit(df[PREDICTOR_COLUMNS], df["bloom_doy"])
+    else:
+        print(f"\n{'='*80}")
+        print(f"MODE: Simple Holdout (Last {HOLDOUT_LAST_N_YEARS} Years)")
+        print(f"{'='*80}")
+        
+        years = sorted(df["year"].dropna().unique().tolist())
+        if len(years) <= HOLDOUT_LAST_N_YEARS:
+            raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
 
-    holdout_years = set(years[-HOLDOUT_LAST_N_YEARS:])
-    train_years = set(years[:-HOLDOUT_LAST_N_YEARS])
+        holdout_years = set(years[-HOLDOUT_LAST_N_YEARS:])
+        train_years = set(years[:-HOLDOUT_LAST_N_YEARS])
 
-    train = df[df["year"].isin(train_years)].copy()
-    df_holdout = df[df["year"].isin(holdout_years)].copy()
+        train = df[df["year"].isin(train_years)].copy()
+        df_holdout = df[df["year"].isin(holdout_years)].copy()
 
-    print(f"Training set: {len(train)} records (years {min(train_years)}-{max(train_years)})")
-    print(f"Holdout set: {len(df_holdout)} records (years {min(holdout_years)}-{max(holdout_years)})")
+        print(f"\nTraining set: {len(train)} records (years {min(train_years)}-{max(train_years)})")
+        print(f"Holdout set: {len(df_holdout)} records (years {min(holdout_years)}-{max(holdout_years)})")
 
-    x_train = train[PREDICTOR_COLUMNS]
-    y_train = train["bloom_doy"]
-    x_holdout = df_holdout[PREDICTOR_COLUMNS]
-    y_holdout = df_holdout["bloom_doy"]
-
-    print("\n--- Training Bayesian Ridge ---")
-    bayes = build_pipeline(BayesianRidge())
-    bayes.fit(x_train, y_train)
-
-    evaluate(bayes, x_train, y_train, "Bayesian Ridge Train")
-    evaluate(bayes, x_holdout, y_holdout, f"Bayesian Ridge Holdout (Last {HOLDOUT_LAST_N_YEARS} Years)")
-
-    if not df_holdout.empty:
-        holdout_mean, holdout_std = bayes.predict(x_holdout, return_std=True)
-        holdout_output = df_holdout[["location", "year", "bloom_doy"]].copy()
-        holdout_output["predicted_doy"] = np.round(holdout_mean, 1)
-        holdout_output["predicted_doy_std"] = np.round(holdout_std, 1)
-        holdout_output["90_ci_lower"] = np.round(holdout_mean - 1.645 * holdout_std, 1)
-        holdout_output["90_ci_upper"] = np.round(holdout_mean + 1.645 * holdout_std, 1)
-        holdout_output["abs_error_days"] = (holdout_output["predicted_doy"] - holdout_output["bloom_doy"]).abs().round(1)
-        holdout_output["model_name"] = "bayesian_ridge"
-        holdout_output = holdout_output.rename(columns={"bloom_doy": "actual_bloom_doy"})
+        print("\n--- Training Bayesian Ridge ---")
+        final_bayes, holdout_output, metrics = train_and_evaluate_split(train, df_holdout, f"Last {HOLDOUT_LAST_N_YEARS} Years")
+        
         os.makedirs(os.path.dirname(OUTPUT_HOLDOUT), exist_ok=True)
         holdout_output.to_csv(OUTPUT_HOLDOUT, index=False)
         print(f"Holdout predictions saved to: {OUTPUT_HOLDOUT}")
@@ -139,7 +255,7 @@ def main():
     x_future = df_2026[PREDICTOR_COLUMNS]
 
     df_2026 = df_2026.reset_index(drop=True)
-    preds_mean, preds_std = bayes.predict(x_future, return_std=True)
+    preds_mean, preds_std = final_bayes.predict(x_future, return_std=True)
     df_2026["predicted_doy"] = np.round(preds_mean, 1)
     df_2026["predicted_doy_std"] = np.round(preds_std, 1)
     df_2026["90_ci_lower"] = np.round(preds_mean - 1.645 * preds_std, 1)

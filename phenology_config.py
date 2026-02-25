@@ -46,8 +46,14 @@ LOCATION_ALIASES = {
 HOLDOUT_LOCATIONS = ["vancouver", "newyorkcity"]
 HOLDOUT_EXTRA_COUNTRIES = ["KR", "CH", "JP"]
 HOLDOUT_PER_COUNTRY = 3
-HOLDOUT_LAST_N_YEARS = 10
+HOLDOUT_LAST_N_YEARS = 20
 HOLDOUT_RANDOM_SEED = 42
+
+# Cross-Validation Configuration
+USE_CV_FOLDS = False  # Set to True to use year-block CV instead of simple holdout
+CV_FOLDS_FILE = os.path.join(MODEL_INPUT_DIR, "year_block_folds.csv")
+CV_CONFIG_FILE = os.path.join(MODEL_INPUT_DIR, "cv_fold_config.csv")
+CV_ACTIVE_SPLIT = None  # None = run all splits, or specify 1-5 for specific fold
 
 # ==========================================
 # LOCATION / SPECIES MAPPINGS

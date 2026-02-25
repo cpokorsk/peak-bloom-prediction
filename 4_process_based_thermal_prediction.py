@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
+from sklearn.metrics import r2_score
 
 from phenology_config import (
 	AGGREGATED_BLOOM_FILE,
@@ -15,6 +16,7 @@ from phenology_config import (
 	TARGET_YEAR,
 	TARGET_PREDICTION_LOCATIONS,
 	WINTER_START_MONTH_DAY,
+	USE_CV_FOLDS,
 	get_species_thresholds,
 	normalize_location,
 )
@@ -378,7 +380,15 @@ def evaluate_holdout(process_params_df, holdout_bloom_df, climate_df):
 
 
 def main():
-	print("1. Loading bloom, climate, and forecast datasets...")
+	print("=" * 80)
+	print("PROCESS-BASED THERMAL MODEL")
+	print("=" * 80)
+	if USE_CV_FOLDS:
+		print("Note: CV mode not supported for this model. Using simple holdout.")
+	print(f"Holdout: Last {HOLDOUT_LAST_N_YEARS} years")
+	print("=" * 80)
+	
+	print("\n1. Loading bloom, climate, and forecast datasets...")
 	if not os.path.exists(BLOOM_FILE) or not os.path.exists(CLIMATE_FILE) or not os.path.exists(FORECAST_FILE):
 		raise FileNotFoundError("Missing required input files. Run earlier pipeline steps first.")
 
@@ -430,6 +440,9 @@ def main():
 	holdout_ok = holdout_eval_df[holdout_eval_df["status"] == "ok"]
 	if not holdout_ok.empty:
 		print(f"Holdout MAE (days): {holdout_ok['abs_error_days'].mean():.2f} over {len(holdout_ok)} events")
+		if len(holdout_ok) >= 2:
+			holdout_r2 = r2_score(holdout_ok["actual_bloom_doy"], holdout_ok["predicted_doy"])
+			print(f"Holdout R²: {holdout_r2:.3f}")
 	else:
 		print("Warning: No valid holdout predictions were produced.")
 

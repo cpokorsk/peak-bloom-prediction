@@ -5,8 +5,8 @@ import statsmodels.formula.api as smf
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from phenology_config import (
     MODEL_FEATURES_FILE,
-    FINAL_PREDICTIONS_FILE,
     HOLDOUT_OUTPUT_DIR,
+    PREDICTIONS_OUTPUT_DIR,
     MODEL_OUTPUT_DIR,
     HOLDOUT_LAST_N_YEARS,
     MIN_MODEL_YEAR,
@@ -22,14 +22,63 @@ from phenology_config import (
 # 1. CONFIGURATION
 # ==========================================
 FEATURES_FILE = MODEL_FEATURES_FILE
-OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE
-OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_linear_ols.csv")
-OUTPUT_CV_METRICS = os.path.join(MODEL_OUTPUT_DIR, "cv_metrics_linear_ols.csv")
+OUTPUT_PREDICTIONS = os.path.join(PREDICTIONS_OUTPUT_DIR, "final_2026_predictions_weighted_lm.csv")
+OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, f"holdout_last{HOLDOUT_LAST_N_YEARS}y_weighted_lm.csv")
+OUTPUT_CV_METRICS = os.path.join(MODEL_OUTPUT_DIR, "cv_metrics_weighted_lm.csv")
 MIN_YEAR = MIN_MODEL_YEAR
+
+# WEIGHTING PARAMETERS
+WEIGHT_HALF_LIFE_YEARS = 20  # Observations lose half their weight after this many years
+WEIGHT_METHOD = "exponential"  # Options: "exponential", "linear", "none"
 
 
 # ==========================================
-# 2. CV UTILITIES
+# 2. WEIGHTING FUNCTIONS
+# ==========================================
+def calculate_weights(years, reference_year=None, method="exponential", half_life=20):
+    """
+    Calculate time-based weights for observations.
+    
+    Parameters:
+    -----------
+    years : array-like
+        Array of observation years
+    reference_year : int, optional
+        Reference year (most recent gets weight 1.0). If None, uses max(years)
+    method : str
+        Weighting method: "exponential", "linear", or "none"
+    half_life : float
+        Years until weight decreases by half (for exponential) or to zero (for linear)
+    
+    Returns:
+    --------
+    weights : np.array
+        Weight for each observation (0 to 1)
+    """
+    years = np.array(years)
+    if reference_year is None:
+        reference_year = years.max()
+    
+    years_ago = reference_year - years
+    
+    if method == "exponential":
+        # Exponential decay: w = exp(-λt) where λ = ln(2)/half_life
+        decay_rate = np.log(2) / half_life
+        weights = np.exp(-decay_rate * years_ago)
+    elif method == "linear":
+        # Linear decay: w = max(0, 1 - t/half_life)
+        weights = np.maximum(0, 1 - years_ago / half_life)
+    elif method == "none":
+        # Uniform weights
+        weights = np.ones_like(years, dtype=float)
+    else:
+        raise ValueError(f"Unknown weighting method: {method}")
+    
+    return weights
+
+
+# ==========================================
+# 3. CV UTILITIES
 # ==========================================
 def load_cv_configuration():
     """Load year-block fold assignments for cross-validation."""
@@ -75,11 +124,21 @@ def get_cv_splits(folds_df, config_df, active_split=None):
 
 
 # ==========================================
-# 3. TRAINING & EVALUATION
+# 4. TRAINING & EVALUATION
 # ==========================================
-def train_and_evaluate_split(train_df, test_df, formula, split_name=""):
-    """Train model on train_df and evaluate on test_df."""
-    model = smf.ols(formula=formula, data=train_df).fit()
+def train_and_evaluate_split(train_df, test_df, formula, split_name="", weight_method="exponential", half_life=20):
+    """Train weighted model on train_df and evaluate on test_df."""
+    
+    # Calculate weights for training data
+    train_weights = calculate_weights(
+        train_df['year'].values,
+        reference_year=train_df['year'].max(),
+        method=weight_method,
+        half_life=half_life
+    )
+    
+    # Train weighted least squares model
+    model = smf.wls(formula=formula, data=train_df, weights=train_weights).fit()
     
     # Evaluate on train
     train_preds = model.predict(train_df)
@@ -93,15 +152,21 @@ def train_and_evaluate_split(train_df, test_df, formula, split_name=""):
     test_rmse = np.sqrt(mean_squared_error(test_df['bloom_doy'], test_preds))
     test_r2 = r2_score(test_df['bloom_doy'], test_preds)
     
+    # Calculate weighted metrics for train set
+    train_weighted_mae = np.average(np.abs(train_df['bloom_doy'] - train_preds), weights=train_weights)
+    train_weighted_rmse = np.sqrt(np.average((train_df['bloom_doy'] - train_preds)**2, weights=train_weights))
+    
     print(f"{split_name}:")
     print(f"  Train: MAE={train_mae:.2f}, RMSE={train_rmse:.2f}, R²={train_r2:.3f} (n={len(train_df)})")
+    print(f"  Train (weighted): MAE={train_weighted_mae:.2f}, RMSE={train_weighted_rmse:.2f}")
     print(f"  Test:  MAE={test_mae:.2f}, RMSE={test_rmse:.2f}, R²={test_r2:.3f} (n={len(test_df)})")
+    print(f"  Weight range: [{train_weights.min():.3f}, {train_weights.max():.3f}]")
     
     # Create holdout output
     holdout_output = test_df[['location', 'year', 'bloom_doy']].copy()
     holdout_output['predicted_doy'] = test_preds.round(1)
     holdout_output['abs_error_days'] = (holdout_output['predicted_doy'] - holdout_output['bloom_doy']).abs().round(1)
-    holdout_output['model_name'] = 'linear_ols'
+    holdout_output['model_name'] = 'weighted_lm'
     holdout_output = holdout_output.rename(columns={'bloom_doy': 'actual_bloom_doy'})
     
     metrics = {
@@ -110,19 +175,31 @@ def train_and_evaluate_split(train_df, test_df, formula, split_name=""):
         'train_mae': round(train_mae, 3),
         'train_rmse': round(train_rmse, 3),
         'train_r2': round(train_r2, 3),
+        'train_weighted_mae': round(train_weighted_mae, 3),
+        'train_weighted_rmse': round(train_weighted_rmse, 3),
         'test_mae': round(test_mae, 3),
         'test_rmse': round(test_rmse, 3),
         'test_r2': round(test_r2, 3),
+        'weight_min': round(train_weights.min(), 4),
+        'weight_max': round(train_weights.max(), 4),
+        'weight_mean': round(train_weights.mean(), 4),
     }
     
     return model, holdout_output, metrics
 
 
 # ==========================================
-# 4. MAIN EXECUTION
+# 5. MAIN EXECUTION
 # ==========================================
 def main():
-    print("--- Loading Data ---")
+    print("=" * 80)
+    print("TIME-WEIGHTED LINEAR MODEL (WLS)")
+    print("=" * 80)
+    print(f"Weighting method: {WEIGHT_METHOD}")
+    print(f"Half-life: {WEIGHT_HALF_LIFE_YEARS} years")
+    print("=" * 80)
+    
+    print("\n--- Loading Data ---")
     features_df = pd.read_csv(FEATURES_FILE)
     features_df['location'] = features_df['location'].apply(normalize_location)
     if 'is_future' not in features_df.columns:
@@ -169,7 +246,8 @@ def main():
             print(f"Test years: {min(test_years)}-{max(test_years)}")
             
             model, holdout_output, metrics = train_and_evaluate_split(
-                train_df, test_df, formula, f"Split {split_id}"
+                train_df, test_df, formula, f"Split {split_id}",
+                weight_method=WEIGHT_METHOD, half_life=WEIGHT_HALF_LIFE_YEARS
             )
             
             metrics['split_id'] = split_id
@@ -198,14 +276,21 @@ def main():
         
         # Save aggregated holdout outputs
         all_holdout_df = pd.concat(all_holdout_outputs, ignore_index=True)
-        output_holdout_cv = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_cv_linear_ols.csv")
+        output_holdout_cv = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_cv_weighted_lm.csv")
         os.makedirs(os.path.dirname(output_holdout_cv), exist_ok=True)
         all_holdout_df.to_csv(output_holdout_cv, index=False)
         print(f"Holdout predictions saved to: {output_holdout_cv}")
         
         # Train final model on all data for 2026 predictions
         print(f"\n--- Training Final Model on All Historical Data ---")
-        final_model = smf.ols(formula=formula, data=df).fit()
+        final_weights = calculate_weights(
+            df['year'].values,
+            reference_year=df['year'].max(),
+            method=WEIGHT_METHOD,
+            half_life=WEIGHT_HALF_LIFE_YEARS
+        )
+        final_model = smf.wls(formula=formula, data=df, weights=final_weights).fit()
+        print(f"Final model weight range: [{final_weights.min():.3f}, {final_weights.max():.3f}]")
     
     # ==========================================
     # MODE 2: Simple Last-N-Years Holdout
@@ -228,9 +313,10 @@ def main():
         print(f"\nTraining set: {len(train)} records (years {min(train_years)}-{max(train_years)})")
         print(f"Holdout set: {len(df_holdout)} records (years {min(holdout_years)}-{max(holdout_years)})")
 
-        print("\n--- Training Model ---")
+        print("\n--- Training Weighted Model ---")
         final_model, holdout_output, metrics = train_and_evaluate_split(
-            train, df_holdout, formula, f"Last {HOLDOUT_LAST_N_YEARS} Years"
+            train, df_holdout, formula, f"Last {HOLDOUT_LAST_N_YEARS} Years",
+            weight_method=WEIGHT_METHOD, half_life=WEIGHT_HALF_LIFE_YEARS
         )
         
         print("\n" + str(final_model.summary().tables[1]))
@@ -248,7 +334,7 @@ def main():
         print("\n--- Feature Importance (absolute t-values) ---")
         print(importance_df.head(15).to_string(index=False))
 
-        importance_path = os.path.join(os.path.dirname(FEATURES_FILE), 'feature_importance.csv')
+        importance_path = os.path.join(MODEL_OUTPUT_DIR, 'feature_importance_weighted_lm.csv')
         importance_df.to_csv(importance_path, index=False)
         print(f"Feature importance saved to: {importance_path}")
         
@@ -290,9 +376,9 @@ def main():
     pred_summary = predictions.summary_frame(alpha=0.10)
     
     df_2026_features['predicted_doy'] = pred_summary['mean'].round(1)
-    df_2026_features['90_ci_lower'] = pred_summary['obs_ci_lower'].round(1)
-    df_2026_features['90_ci_upper'] = pred_summary['obs_ci_upper'].round(1)
-    df_2026_features['interval_halfwidth_days'] = ((df_2026_features['90_ci_upper'] - df_2026_features['90_ci_lower']) / 2).round(1)
+    df_2026_features['90_pi_lower'] = pred_summary['obs_ci_lower'].round(1)
+    df_2026_features['90_pi_upper'] = pred_summary['obs_ci_upper'].round(1)
+    df_2026_features['interval_halfwidth_days'] = ((df_2026_features['90_pi_upper'] - df_2026_features['90_pi_lower']) / 2).round(1)
     
     # Convert DOY to actual calendar dates
     def doy_to_date(year, doy):
@@ -301,9 +387,15 @@ def main():
         return (pd.to_datetime(f"{int(year)}-01-01") + pd.Timedelta(days=int(doy)-1)).strftime("%b %d")
         
     df_2026_features['predicted_date'] = df_2026_features.apply(lambda x: doy_to_date(x['year'], x['predicted_doy']), axis=1)
+    df_2026_features['90_pi_lower_date'] = df_2026_features.apply(lambda x: doy_to_date(x['year'], x['90_pi_lower']), axis=1)
+    df_2026_features['90_pi_upper_date'] = df_2026_features.apply(lambda x: doy_to_date(x['year'], x['90_pi_upper']), axis=1)
 
     # Clean up and save
-    final_cols = ['location', 'predicted_date', 'predicted_doy', '90_ci_lower', '90_ci_upper', 'interval_halfwidth_days']
+    final_cols = [
+        'location', 'predicted_date', 'predicted_doy', 
+        '90_pi_lower', '90_pi_upper', 'interval_halfwidth_days',
+        '90_pi_lower_date', '90_pi_upper_date'
+    ]
     final_predictions = df_2026_features[final_cols]
     
     print(final_predictions.to_string(index=False))
