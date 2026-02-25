@@ -15,7 +15,7 @@
 build/
 pdfs/
 
-*noaa/
+.old/noaa/
 
 # LaTeX build artifacts
 *.aux

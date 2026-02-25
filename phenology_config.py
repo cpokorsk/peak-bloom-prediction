@@ -7,6 +7,8 @@ DATA_DIR = "data"
 NOAA_DIR = os.path.join(DATA_DIR, "noaa")
 BLOOM_DIR = os.path.join(DATA_DIR, "blossoms")
 MODEL_OUTPUT_DIR = os.path.join(DATA_DIR, "model_outputs")
+HOLDOUT_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "holdout")
+PREDICTIONS_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "predictions")
 
 NOAA_STATION_METADATA_FILE = os.path.join(DATA_DIR, "NOAA_station_metadata.csv")
 BLOSSOM_SITE_METADATA_FILE = os.path.join(MODEL_OUTPUT_DIR, "blossom_site_metadata.csv")
@@ -14,7 +16,7 @@ AGGREGATED_BLOOM_FILE = os.path.join(MODEL_OUTPUT_DIR, "aggregated_bloom_data.cs
 AGGREGATED_CLIMATE_FILE = os.path.join(MODEL_OUTPUT_DIR, "aggregated_climate_data.csv")
 PROJECTED_CLIMATE_FILE = os.path.join(MODEL_OUTPUT_DIR, "projected_climate_2026.csv")
 MODEL_FEATURES_FILE = os.path.join(MODEL_OUTPUT_DIR, "model_features.csv")
-FINAL_PREDICTIONS_FILE = os.path.join(MODEL_OUTPUT_DIR, "final_2026_predictions.csv")
+FINAL_PREDICTIONS_FILE = os.path.join(PREDICTIONS_OUTPUT_DIR, "final_2026_predictions.csv")
 
 # ==========================================
 # PIPELINE PARAMS

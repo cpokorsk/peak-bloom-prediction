@@ -1,0 +1,143 @@
+---
+title: "Peak Bloom Prediction Pipeline Walkthrough"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+This report runs the full modeling pipeline end-to-end, then displays the final stacked ensemble predictions.
+
+## 1) Setup
+
+```{python}
+from pathlib import Path
+import subprocess
+import sys
+import pandas as pd
+
+ROOT = Path.cwd()
+PYTHON = sys.executable
+
+print(f"Working directory: {ROOT}")
+print(f"Python executable: {PYTHON}")
+```
+
+## 2) Define Pipeline Steps
+
+```{python}
+pipeline_steps = [
+    "0a_generate_metadata.py",
+    "0b_generate_blossom_site_metadata.py",
+    "1a_aggregate_bloom_data.py",
+    "1b_aggregate_climate.py",
+    "2_forecast_2026_climate.py",
+    "3_feature_engineering.py",
+    "4_lm_train_and_predict.py",
+    "4_ridge_lasso_train_and_predict.py",
+    "4_bayseian_ridge_train_and_predict.py",
+    "4_gradient_boosting_quantile_train_and_predict.py",
+    "4_arimax_prediction_model.py",
+    "4_process_based_thermal_prediction.py",
+    "4_process_based_dts_model.py",
+    "5_stacked_ensemble.py",
+]
+
+for step in pipeline_steps:
+    if not (ROOT / step).exists():
+        raise FileNotFoundError(f"Missing pipeline script: {step}")
+
+print(f"Validated {len(pipeline_steps)} pipeline scripts.")
+```
+
+## 3) Run Full Pipeline
+
+```{python}
+RUN_FULL_PIPELINE = True
+
+if RUN_FULL_PIPELINE:
+    for idx, script in enumerate(pipeline_steps, start=1):
+        print("\n" + "="*80)
+        print(f"Step {idx}/{len(pipeline_steps)}: {script}")
+        print("="*80)
+
+        result = subprocess.run(
+            [PYTHON, script],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+        )
+
+        if result.stdout:
+            print(result.stdout.strip())
+        if result.returncode != 0:
+            if result.stderr:
+                print("\n[stderr]")
+                print(result.stderr.strip())
+            raise RuntimeError(f"Pipeline failed at {script} (exit code {result.returncode}).")
+else:
+    print("RUN_FULL_PIPELINE is False. Skipping execution.")
+```
+
+## 4) Check Key Outputs
+
+```{python}
+output_checks = {
+    "Linear OLS holdout": "data/model_outputs/holdout/holdout_last10y_linear_ols.csv",
+    "Bayesian holdout": "data/model_outputs/holdout/holdout_last10y_bayesian_ridge.csv",
+    "ARIMAX holdout": "data/model_outputs/holdout/holdout_last10y_arimax.csv",
+    "Stacked predictions": "data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv",
+    "Stacked weights": "data/model_outputs/stacked_ensemble_meta_model_weights.csv",
+}
+
+status_df = pd.DataFrame(
+    [
+        {"artifact": name, "path": rel_path, "exists": (ROOT / rel_path).exists()}
+        for name, rel_path in output_checks.items()
+    ]
+)
+
+status_df
+```
+
+## 5) Final 2026 Stacked Predictions
+
+```{python}
+final_path = ROOT / "data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv"
+if not final_path.exists():
+    raise FileNotFoundError(f"Expected final predictions file not found: {final_path}")
+
+final_pred = pd.read_csv(final_path)
+final_pred
+```
+
+## 6) Stacked Model Weights
+
+```{python}
+weights_path = ROOT / "data/model_outputs/stacked_ensemble_meta_model_weights.csv"
+if not weights_path.exists():
+    raise FileNotFoundError(f"Expected weights file not found: {weights_path}")
+
+weights = pd.read_csv(weights_path)
+weights
+```
+
+## 7) Final Submission View
+
+```{python}
+submission_cols = [col for col in [
+    "location",
+    "predicted_date",
+    "predicted_doy",
+    "90_pi_lower",
+    "90_pi_upper",
+] if col in final_pred.columns]
+
+final_pred[submission_cols].sort_values("location").reset_index(drop=True)
+```
