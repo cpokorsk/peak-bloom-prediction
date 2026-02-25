@@ -16,6 +16,11 @@ build/
 pdfs/
 
 .old/noaa/
+*data/
+# Except for the NOAA and NPN Data folders
+!data/noaa/
+!data/npn/
+!data/blossoms/
 
 # LaTeX build artifacts
 *.aux
