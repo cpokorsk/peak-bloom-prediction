@@ -11,6 +11,7 @@ MODEL_INPUT_DIR = os.path.join(DATA_DIR, "model_inputs")
 MODEL_OUTPUT_DIR = os.path.join(DATA_DIR, "model_outputs")
 HOLDOUT_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "holdout")
 PREDICTIONS_OUTPUT_DIR = os.path.join(MODEL_OUTPUT_DIR, "predictions")
+FIGURES_DIR = "figures"
 
 NOAA_STATION_METADATA_FILE = os.path.join(METADATA_DIR, "NOAA_station_metadata.csv")
 BLOSSOM_SITE_METADATA_FILE = os.path.join(METADATA_DIR, "blossom_site_metadata.csv")
@@ -46,7 +47,7 @@ LOCATION_ALIASES = {
 HOLDOUT_LOCATIONS = ["vancouver", "newyorkcity"]
 HOLDOUT_EXTRA_COUNTRIES = ["KR", "CH", "JP"]
 HOLDOUT_PER_COUNTRY = 3
-HOLDOUT_LAST_N_YEARS = 20
+HOLDOUT_LAST_N_YEARS = 10
 HOLDOUT_RANDOM_SEED = 42
 
 # Cross-Validation Configuration
