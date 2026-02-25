@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Peak Bloom Prediction Pipeline Walkthrough</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js" integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2" crossorigin="anonymous"></script><script src="pipeline_walkthrough_files/libs/clipboard/clipboard.min.js"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/popper.min.js"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="pipeline_walkthrough_files/libs/quarto-html/anchor.min.js"></script>
+<link href="pipeline_walkthrough_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="pipeline_walkthrough_files/libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="pipeline_walkthrough_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="pipeline_walkthrough_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="pipeline_walkthrough_files/libs/bootstrap/bootstrap-9e3ffae467580fdb927a41352e75a2e0.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="https://cdn.jsdelivr.net/npm/requirejs@2.3.6/require.min.js" integrity="sha384-c9c+LnTbwQ3aujuU7ULEPVvgLs+Fn6fJUvIGTsuu1ZcCf11fiEubah0ttpca4ntM sha384-6V1/AdqZRWk1KAlWbKBlGhN7VG4iE/yAZcO6NZPMF8od0vukrvr0tg4qY6NSrItx" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#executive-summary" id="toc-executive-summary" class="nav-link active" data-scroll-target="#executive-summary">Executive Summary</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#environment-bootstrap" id="toc-environment-bootstrap" class="nav-link" data-scroll-target="#environment-bootstrap">0) Environment Bootstrap</a>
+  <ul class="collapse">
+  <li><a href="#methodology" id="toc-methodology" class="nav-link" data-scroll-target="#methodology">Methodology</a></li>
+  <li><a href="#validation-approach" id="toc-validation-approach" class="nav-link" data-scroll-target="#validation-approach">Validation Approach</a></li>
+  <li><a href="#model-selection-ensemble" id="toc-model-selection-ensemble" class="nav-link" data-scroll-target="#model-selection-ensemble">Model Selection &amp; Ensemble</a></li>
+  </ul></li>
+  <li><a href="#setup" id="toc-setup" class="nav-link" data-scroll-target="#setup">1) Setup</a></li>
+  <li><a href="#define-pipeline-steps" id="toc-define-pipeline-steps" class="nav-link" data-scroll-target="#define-pipeline-steps">2) Define Pipeline Steps</a></li>
+  <li><a href="#run-full-pipeline" id="toc-run-full-pipeline" class="nav-link" data-scroll-target="#run-full-pipeline">3) Run Full Pipeline</a></li>
+  <li><a href="#check-key-outputs" id="toc-check-key-outputs" class="nav-link" data-scroll-target="#check-key-outputs">4) Check Key Outputs</a></li>
+  <li><a href="#model-selection-results" id="toc-model-selection-results" class="nav-link" data-scroll-target="#model-selection-results">5) Model Selection Results</a>
+  <ul class="collapse">
+  <li><a href="#all-model-performance-rankings" id="toc-all-model-performance-rankings" class="nav-link" data-scroll-target="#all-model-performance-rankings">All Model Performance Rankings</a></li>
+  <li><a href="#recommended-models-for-ensemble" id="toc-recommended-models-for-ensemble" class="nav-link" data-scroll-target="#recommended-models-for-ensemble">Recommended Models for Ensemble</a></li>
+  </ul></li>
+  <li><a href="#stacked-ensemble-performance" id="toc-stacked-ensemble-performance" class="nav-link" data-scroll-target="#stacked-ensemble-performance">6) Stacked Ensemble Performance</a>
+  <ul class="collapse">
+  <li><a href="#ensemble-metrics" id="toc-ensemble-metrics" class="nav-link" data-scroll-target="#ensemble-metrics">Ensemble Metrics</a></li>
+  <li><a href="#meta-model-weights" id="toc-meta-model-weights" class="nav-link" data-scroll-target="#meta-model-weights">Meta-Model Weights</a></li>
+  </ul></li>
+  <li><a href="#final-2026-predictions" id="toc-final-2026-predictions" class="nav-link" data-scroll-target="#final-2026-predictions">7) Final 2026 Predictions</a>
+  <ul class="collapse">
+  <li><a href="#full-prediction-output" id="toc-full-prediction-output" class="nav-link" data-scroll-target="#full-prediction-output">Full Prediction Output</a></li>
+  <li><a href="#submission-format" id="toc-submission-format" class="nav-link" data-scroll-target="#submission-format">Submission Format</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Peak Bloom Prediction Pipeline Walkthrough</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="executive-summary" class="level2">
+<h2 class="anchored" data-anchor-id="executive-summary">Executive Summary</h2>
+<p>The timing of spring phenological events, particularly the peak bloom of cherry blossoms, serves as a sensitive indicator of local climate change and interannual weather variability. Accurate forecasts of these events are essential for cultural, economic, and scientific purposes. This study presents a reproducible forecasting pipeline designed to predict the 2026 peak cherry blossom bloom, reported as both day-of-year (DOY) and calendar date, across five geographically diverse locations.</p>
+<p>The primary biological hypothesis posits that bloom timing is mainly determined by late-winter and early-spring temperatures, with additional influences from precipitation, winter chill, and species genetics. To enhance the accuracy of climate data, temperature values for each site are adjusted according to the altitude difference between the meteorological station and the blossom location. Feature engineering incorporates biologically meaningful climate summaries, including early-spring temperature statistics (mean and maximum daily temperatures), cumulative pre-bloom precipitation, and chill-day variables that quantify cold exposure required to break endodormancy. Species and continental indicators are also included to account for systematic differences, thereby supporting reliable predictions under changing climate conditions.</p>
+<p>Given the inherent model risk in ecological forecasting, we tested a multi-model ensemble integrating several algorithm types. Linear models (Ordinary Least Squares, Ridge, Lasso, Bayesian Ridge, and a weighted linear model) provided interpretable baselines and broad trend identification. Non-linear methods (Gradient Boosting Quantile Regression and Random Forests) and time-series models (ARIMAX) were also evaluated, but these underperformed according to MAE, RMSE, and <span class="math inline">\(R^2\)</span> metrics. Process-based phenological models were used to impose biological constraints. Ultimately, the weighted linear model and regularized linear models were emphasized, as they consistently outperformed non-linear and time-series approaches.</p>
+<p>Since no single model performs best everywhere, we use block-based cross-validation for evaluation. For the final holdout, we use the most recent 20 years as an unseen test set. Base models are ranked by Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and <span class="math inline">\(R^2\)</span>. Only the time-weighted linear model (WLM), OLS, Ridge, Bayesian Ridge, and Lasso are used in the final stacked ensemble, which is combined by a RidgeCV meta-learner trained exclusively on out-of-sample predictions.</p>
+<p>To support decision-making, point forecasts are provided with statistically calibrated prediction intervals. We analyze residuals from holdout predictions to estimate empirical error quantiles and generate reliable bounds for each location. The entire framework follows open-science principles. Implemented as a Quarto document, the pipeline installs dependencies, trains the ensemble, validates outputs, and renders final prediction tables, allowing independent reviewers to easily reproduce the 2026 results.</p>
+</section>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This report runs the full modeling pipeline end-to-end, then displays the final stacked ensemble predictions.</p>
+</section>
+<section id="environment-bootstrap" class="level2">
+<h2 class="anchored" data-anchor-id="environment-bootstrap">0) Environment Bootstrap</h2>
+<section id="methodology" class="level3">
+<h3 class="anchored" data-anchor-id="methodology">Methodology</h3>
+<p>The pipeline employs a <strong>stacked ensemble</strong> approach combining multiple model types:</p>
+<p><strong>Statistical Models:</strong> - Linear OLS regression - Time-weighted linear model (exponential decay, 20-year half-life) - Ridge and Lasso regularization - Bayesian Ridge regression - Gradient Boosting with quantile regression</p>
+<p><strong>Time Series Models:</strong> - ARIMAX (SARIMAX with exogenous climate variables)</p>
+<p><strong>Process-Based Phenology Models:</strong> - Thermal time accumulation model (chill + forcing requirements) - DTS (Development rate Temperature Summation) with Arrhenius function</p>
+<p><strong>Machine Learning:</strong> - Random Forest regression</p>
+</section>
+<section id="validation-approach" class="level3">
+<h3 class="anchored" data-anchor-id="validation-approach">Validation Approach</h3>
+<p>The pipeline supports two validation modes (configured via <code>USE_CV_FOLDS</code> in <code>phenology_config.py</code>):</p>
+<ol type="1">
+<li><strong>Simple Holdout</strong> (default): Last 20 years reserved as test set</li>
+<li><strong>Year-Block Cross-Validation</strong>: 5 contiguous temporal folds (1961-2026 divided into 14-13-13-13-13 year blocks)</li>
+</ol>
+<p>CV provides more robust estimates (198 samples vs 64) and prevents overfitting to recent patterns, though older data may be less relevant due to climate change.</p>
+</section>
+<section id="model-selection-ensemble" class="level3">
+<h3 class="anchored" data-anchor-id="model-selection-ensemble">Model Selection &amp; Ensemble</h3>
+<ul>
+<li><strong>Step 5a</strong>: <code>5_model_selection.py</code> ranks models by composite score (MAE + RMSE + R² ranks)</li>
+<li><strong>Step 5b</strong>: <code>5_stacked_ensemble.py</code> trains RidgeCV meta-model on top 5 base models</li>
+<li>Meta-model learns optimal weights rather than simple averaging</li>
+<li>90% prediction intervals calibrated from holdout residuals</li>
+</ul>
+</section>
+</section>
+<section id="setup" class="level2">
+<h2 class="anchored" data-anchor-id="setup">1) Setup</h2>
+<div id="a74ef8ef" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>ROOT <span class="op">=</span> Path.cwd()</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>PYTHON <span class="op">=</span> sys.executable</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="define-pipeline-steps" class="level2">
+<h2 class="anchored" data-anchor-id="define-pipeline-steps">2) Define Pipeline Steps</h2>
+<div id="e3da0c5c" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pipeline_steps <span class="op">=</span> [</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"0a_generate_metadata.py"</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"0b_generate_blossom_site_metadata.py"</span>,</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"1a_aggregate_bloom_data.py"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"1b_aggregate_climate.py"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"2_forecast_2026_climate.py"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"3_feature_engineering.py"</span>,</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_lm_train_and_predict.py"</span>,</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_weighted_lm_train_and_predict.py"</span>,</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_ridge_lasso_train_and_predict.py"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_bayseian_ridge_train_and_predict.py"</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_gradient_boosting_quantile_train_and_predict.py"</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_arimax_prediction_model.py"</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_random_forest_train_and_predict.py"</span>,</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_process_based_thermal_prediction.py"</span>,</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"4_process_based_dts_model.py"</span>,</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"5_model_selection.py"</span>,</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"5_stacked_ensemble.py"</span>,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> step <span class="kw">in</span> pipeline_steps:</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> (ROOT <span class="op">/</span> step).exists():</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Missing pipeline script: </span><span class="sc">{</span>step<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Validated </span><span class="sc">{</span><span class="bu">len</span>(pipeline_steps)<span class="sc">}</span><span class="ss"> pipeline scripts."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Validated 17 pipeline scripts.</code></pre>
+</div>
+</div>
+</section>
+<section id="run-full-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="run-full-pipeline">3) Run Full Pipeline</h2>
+</section>
+<section id="check-key-outputs" class="level2">
+<h2 class="anchored" data-anchor-id="check-key-outputs">4) Check Key Outputs</h2>
+<div id="7382e895" class="cell" data-message="false" data-execution_count="5">
+<div class="cell-output cell-output-stdout">
+<pre><code>Config: USE_CV_FOLDS=False, HOLDOUT_LAST_N_YEARS=20
+
+Checking 7 pipeline output files:
+</code></pre>
+</div>
+<div class="cell-output cell-output-display" data-execution_count="5">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">artifact</th>
+<th data-quarto-table-cell-role="th">path</th>
+<th data-quarto-table-cell-role="th">exists</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>Model selection summary</td>
+<td>data/model_outputs/model_selection_metrics_sum...</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>Recommended models</td>
+<td>data/model_outputs/model_selection_recommended...</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>Stacked predictions</td>
+<td>data/model_outputs/predictions/final_2026_pred...</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>Stacked weights</td>
+<td>data/model_outputs/stacked_ensemble_meta_model...</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>Stacked metrics</td>
+<td>data/model_outputs/stacked_ensemble_model_metr...</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>Model features</td>
+<td>data/model_inputs/model_features.csv</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>Feature importance</td>
+<td>data/model_outputs/feature_importance.csv</td>
+<td>False</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="model-selection-results" class="level2">
+<h2 class="anchored" data-anchor-id="model-selection-results">5) Model Selection Results</h2>
+<section id="all-model-performance-rankings" class="level3">
+<h3 class="anchored" data-anchor-id="all-model-performance-rankings">All Model Performance Rankings</h3>
+<div id="b603678d" class="cell" data-message="false" data-execution_count="6">
+<div class="cell-output cell-output-display" data-execution_count="6">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">n</th>
+<th data-quarto-table-cell-role="th">mae_days</th>
+<th data-quarto-table-cell-role="th">rmse_days</th>
+<th data-quarto-table-cell-role="th">r2</th>
+<th data-quarto-table-cell-role="th">composite_rank_score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>weighted_lm</td>
+<td>64</td>
+<td>4.2875</td>
+<td>4.9739</td>
+<td>0.4970</td>
+<td>1.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>linear_ols</td>
+<td>64</td>
+<td>4.4688</td>
+<td>5.3027</td>
+<td>0.4283</td>
+<td>2.000000</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>ridge</td>
+<td>64</td>
+<td>4.6266</td>
+<td>5.5408</td>
+<td>0.3758</td>
+<td>3.000000</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>bayesian_ridge</td>
+<td>64</td>
+<td>4.6547</td>
+<td>5.5753</td>
+<td>0.3680</td>
+<td>4.333333</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>lasso</td>
+<td>64</td>
+<td>4.8562</td>
+<td>5.8565</td>
+<td>0.3027</td>
+<td>5.333333</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">5</th>
+<td>random_forest</td>
+<td>64</td>
+<td>5.4859</td>
+<td>6.4914</td>
+<td>0.1433</td>
+<td>6.333333</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">6</th>
+<td>process_based_thermal</td>
+<td>27</td>
+<td>4.6296</td>
+<td>11.0437</td>
+<td>-1.0059</td>
+<td>7.333333</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">7</th>
+<td>arimax</td>
+<td>64</td>
+<td>6.1047</td>
+<td>7.8422</td>
+<td>-0.2503</td>
+<td>7.333333</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">8</th>
+<td>gradient_boosting_quantile</td>
+<td>64</td>
+<td>6.9437</td>
+<td>8.7522</td>
+<td>-0.5574</td>
+<td>8.333333</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">9</th>
+<td>dts</td>
+<td>66</td>
+<td>9.5909</td>
+<td>15.5928</td>
+<td>-3.9993</td>
+<td>10.000000</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="recommended-models-for-ensemble" class="level3">
+<h3 class="anchored" data-anchor-id="recommended-models-for-ensemble">Recommended Models for Ensemble</h3>
+<p>The top 5 models by composite rank score are selected for the stacked ensemble:</p>
+<div id="33554247" class="cell" data-message="false" data-execution_count="7">
+<div class="cell-output cell-output-display" data-execution_count="7">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">model</th>
+<th data-quarto-table-cell-role="th">mae_days</th>
+<th data-quarto-table-cell-role="th">rmse_days</th>
+<th data-quarto-table-cell-role="th">r2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>weighted_lm</td>
+<td>4.2875</td>
+<td>4.9739</td>
+<td>0.4970</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>linear_ols</td>
+<td>4.4688</td>
+<td>5.3027</td>
+<td>0.4283</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>ridge</td>
+<td>4.6266</td>
+<td>5.5408</td>
+<td>0.3758</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>bayesian_ridge</td>
+<td>4.6547</td>
+<td>5.5753</td>
+<td>0.3680</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>lasso</td>
+<td>4.8562</td>
+<td>5.8565</td>
+<td>0.3027</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="stacked-ensemble-performance" class="level2">
+<h2 class="anchored" data-anchor-id="stacked-ensemble-performance">6) Stacked Ensemble Performance</h2>
+<section id="ensemble-metrics" class="level3">
+<h3 class="anchored" data-anchor-id="ensemble-metrics">Ensemble Metrics</h3>
+<div id="10e5ceca" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ensemble_metrics_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/stacked_ensemble_model_metrics.csv"</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> ensemble_metrics_path.exists():</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Ensemble metrics not found: </span><span class="sc">{</span>ensemble_metrics_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>ensemble_metrics <span class="op">=</span> pd.read_csv(ensemble_metrics_path)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Show base model performance and ensemble results</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>display_cols <span class="op">=</span> [<span class="st">"model"</span>, <span class="st">"mae_days"</span>, <span class="st">"rmse_days"</span>]</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="st">"mae_days"</span> <span class="kw">in</span> ensemble_metrics.columns:</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    ensemble_metrics[display_cols]</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="meta-model-weights" class="level3">
+<h3 class="anchored" data-anchor-id="meta-model-weights">Meta-Model Weights</h3>
+<p>The stacked ensemble learns optimal weights for each base model using Ridge regression:</p>
+<div id="16c3e313" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>weights_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/stacked_ensemble_meta_model_weights.csv"</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> weights_path.exists():</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Expected weights file not found: </span><span class="sc">{</span>weights_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> pd.read_csv(weights_path)</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>weights</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="9">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">feature</th>
+<th data-quarto-table-cell-role="th">coefficient</th>
+<th data-quarto-table-cell-role="th">weight_percent</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>pred_weighted_lm</td>
+<td>0.315251</td>
+<td>36.4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>pred_linear_ols</td>
+<td>0.264991</td>
+<td>30.6</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>pred_ridge</td>
+<td>0.139178</td>
+<td>16.1</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>pred_bayesian_ridge</td>
+<td>0.127086</td>
+<td>14.7</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>pred_lasso</td>
+<td>0.019354</td>
+<td>2.2</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="final-2026-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="final-2026-predictions">7) Final 2026 Predictions</h2>
+<section id="full-prediction-output" class="level3">
+<h3 class="anchored" data-anchor-id="full-prediction-output">Full Prediction Output</h3>
+<div id="6ada9114" class="cell" data-execution_count="10">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>final_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv"</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> final_path.exists():</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Expected final predictions file not found: </span><span class="sc">{</span>final_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>final_pred <span class="op">=</span> pd.read_csv(final_path)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>final_pred</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="10">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">location</th>
+<th data-quarto-table-cell-role="th">predicted_date</th>
+<th data-quarto-table-cell-role="th">predicted_doy</th>
+<th data-quarto-table-cell-role="th">90_pi_lower</th>
+<th data-quarto-table-cell-role="th">90_pi_upper</th>
+<th data-quarto-table-cell-role="th">interval_halfwidth_days</th>
+<th data-quarto-table-cell-role="th">90_pi_lower_date</th>
+<th data-quarto-table-cell-role="th">90_pi_upper_date</th>
+<th data-quarto-table-cell-role="th">simple_average</th>
+<th data-quarto-table-cell-role="th">stacked_ensemble</th>
+<th data-quarto-table-cell-role="th">pred_weighted_lm</th>
+<th data-quarto-table-cell-role="th">pred_linear_ols</th>
+<th data-quarto-table-cell-role="th">pred_ridge</th>
+<th data-quarto-table-cell-role="th">pred_bayesian_ridge</th>
+<th data-quarto-table-cell-role="th">pred_lasso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>kyoto</td>
+<td>Apr 05</td>
+<td>95.2</td>
+<td>87.7</td>
+<td>102.7</td>
+<td>7.512814</td>
+<td>Mar 28</td>
+<td>Apr 12</td>
+<td>98.48</td>
+<td>95.218594</td>
+<td>97.1</td>
+<td>97.5</td>
+<td>99.3</td>
+<td>99.6</td>
+<td>98.9</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>liestal</td>
+<td>Apr 07</td>
+<td>97.3</td>
+<td>89.8</td>
+<td>104.8</td>
+<td>7.512814</td>
+<td>Mar 30</td>
+<td>Apr 14</td>
+<td>103.00</td>
+<td>97.300222</td>
+<td>96.3</td>
+<td>97.8</td>
+<td>107.1</td>
+<td>107.7</td>
+<td>106.1</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>newyorkcity</td>
+<td>Apr 13</td>
+<td>103.0</td>
+<td>95.4</td>
+<td>110.5</td>
+<td>7.512814</td>
+<td>Apr 05</td>
+<td>Apr 20</td>
+<td>107.20</td>
+<td>102.954853</td>
+<td>106.1</td>
+<td>106.2</td>
+<td>108.4</td>
+<td>108.9</td>
+<td>106.4</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>vancouver</td>
+<td>Apr 03</td>
+<td>93.2</td>
+<td>85.7</td>
+<td>100.7</td>
+<td>7.512814</td>
+<td>Mar 26</td>
+<td>Apr 10</td>
+<td>97.82</td>
+<td>93.221003</td>
+<td>92.9</td>
+<td>93.4</td>
+<td>100.5</td>
+<td>101.2</td>
+<td>101.1</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>washingtondc</td>
+<td>Apr 05</td>
+<td>95.3</td>
+<td>87.8</td>
+<td>102.9</td>
+<td>7.512814</td>
+<td>Mar 28</td>
+<td>Apr 12</td>
+<td>99.30</td>
+<td>95.339245</td>
+<td>96.4</td>
+<td>96.8</td>
+<td>101.1</td>
+<td>101.5</td>
+<td>100.7</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+<section id="submission-format" class="level3">
+<h3 class="anchored" data-anchor-id="submission-format">Submission Format</h3>
+<div id="dba541cc" class="cell" data-execution_count="11">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>final_pred[</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"location"</span>, <span class="st">"predicted_date"</span>, <span class="st">"predicted_doy"</span>, <span class="st">"90_pi_lower"</span>, <span class="st">"90_pi_upper"</span>]</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>].sort_values(<span class="st">"location"</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display" data-execution_count="11">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">location</th>
+<th data-quarto-table-cell-role="th">predicted_date</th>
+<th data-quarto-table-cell-role="th">predicted_doy</th>
+<th data-quarto-table-cell-role="th">90_pi_lower</th>
+<th data-quarto-table-cell-role="th">90_pi_upper</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">0</th>
+<td>kyoto</td>
+<td>Apr 05</td>
+<td>95.2</td>
+<td>87.7</td>
+<td>102.7</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">1</th>
+<td>liestal</td>
+<td>Apr 07</td>
+<td>97.3</td>
+<td>89.8</td>
+<td>104.8</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">2</th>
+<td>newyorkcity</td>
+<td>Apr 13</td>
+<td>103.0</td>
+<td>95.4</td>
+<td>110.5</td>
+</tr>
+<tr class="even">
+<th data-quarto-table-cell-role="th">3</th>
+<td>vancouver</td>
+<td>Apr 03</td>
+<td>93.2</td>
+<td>85.7</td>
+<td>100.7</td>
+</tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">4</th>
+<td>washingtondc</td>
+<td>Apr 05</td>
+<td>95.3</td>
+<td>87.8</td>
+<td>102.9</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<p>This pipeline demonstrates an end-to-end workflow for cherry blossom peak bloom prediction:</p>
+<ol type="1">
+<li><strong>Data Aggregation</strong>: Historical bloom dates + NOAA climate data</li>
+<li><strong>Feature Engineering</strong>: Early spring climate summaries, species/location effects</li>
+<li><strong>Multi-Model Training</strong>: 9 diverse model types with holdout validation</li>
+<li><strong>Model Selection</strong>: Rank by composite performance metrics</li>
+<li><strong>Stacked Ensemble</strong>: Meta-model learns optimal combination weights</li>
+<li><strong>2026 Predictions</strong>: Final forecasts with 90% prediction intervals</li>
+</ol>
+<p>The stacked ensemble approach typically outperforms any single model by leveraging complementary strengths across statistical, process-based, and machine learning methods.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

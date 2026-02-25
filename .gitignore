@@ -57,6 +57,12 @@ pip-wheel-metadata/
 .coverage.*
 htmlcov/
 
+# Quarto generated artifacts/cache
+.quarto/
+.quarto-cache/
+_freeze/
+*_files/
+
 # Jupyter
 .ipynb_checkpoints/
 
