@@ -9,10 +9,7 @@ from sklearn.preprocessing import OneHotEncoder
 from phenology_config import (
     MODEL_FEATURES_FILE,
     FINAL_PREDICTIONS_FILE,
-    HOLDOUT_LOCATIONS,
-    HOLDOUT_EXTRA_COUNTRIES,
-    HOLDOUT_PER_COUNTRY,
-    HOLDOUT_RANDOM_SEED,
+    HOLDOUT_OUTPUT_DIR,
     MIN_MODEL_YEAR,
     TARGET_PREDICTION_LOCATIONS,
     normalize_location,
@@ -25,7 +22,9 @@ FEATURES_FILE = MODEL_FEATURES_FILE
 OUTPUT_PREDICTIONS = FINAL_PREDICTIONS_FILE.replace(
     ".csv", "_gradient_boosting_quantile.csv"
 )
+OUTPUT_HOLDOUT = os.path.join(HOLDOUT_OUTPUT_DIR, "holdout_last10y_gradient_boosting_quantile.csv")
 MIN_YEAR = MIN_MODEL_YEAR
+HOLDOUT_LAST_N_YEARS = 10
 
 PREDICTOR_COLUMNS = [
     "max_tmax_early_spring",
@@ -100,59 +99,22 @@ def main():
     df = features_df[(features_df["is_future"] == False) & (features_df["year"] >= MIN_YEAR)].copy()
     df = df.dropna(subset=["bloom_doy"] + PREDICTOR_COLUMNS)
 
-    print("\n--- Splitting Data ---")
-    base_holdout = set(HOLDOUT_LOCATIONS)
-    rng = np.random.default_rng(HOLDOUT_RANDOM_SEED)
+    print("\n--- Splitting Data (Last 10 Years Holdout) ---")
+    years = sorted(df["year"].dropna().unique().tolist())
+    if len(years) <= HOLDOUT_LAST_N_YEARS:
+        raise ValueError(f"Need more than {HOLDOUT_LAST_N_YEARS} unique years for holdout split.")
 
-    location_meta = (
-        df[["location", "country_code"]]
-        .dropna(subset=["location"])
-        .drop_duplicates(subset=["location"])
-        .copy()
-    )
+    holdout_years = set(years[-HOLDOUT_LAST_N_YEARS:])
+    train_years = set(years[:-HOLDOUT_LAST_N_YEARS])
 
-    extra_holdout = set()
-    for country in HOLDOUT_EXTRA_COUNTRIES:
-        candidates = location_meta[location_meta["country_code"] == country]["location"]
-        candidates = [
-            loc for loc in candidates
-            if loc not in base_holdout and loc not in TARGET_PREDICTION_LOCATIONS
-        ]
-        if candidates:
-            pick_count = min(HOLDOUT_PER_COUNTRY, len(candidates))
-            extra_holdout.update(rng.choice(candidates, size=pick_count, replace=False).tolist())
+    train = df[df["year"].isin(train_years)].copy()
+    df_holdout = df[df["year"].isin(holdout_years)].copy()
 
-    holdout_locations = base_holdout.union(extra_holdout)
-    holdout_mask = df["location"].isin(holdout_locations)
-    df_holdout = df[holdout_mask].copy()
-    df_main = df[~holdout_mask].copy()
-
-    years = sorted(df_main["year"].dropna().unique().tolist())
-    if len(years) < 3:
-        raise ValueError("Not enough unique years for time-based split.")
-
-    train_cut = int(len(years) * 0.70)
-    val_cut = int(len(years) * 0.85)
-
-    train_years = set(years[:train_cut])
-    val_years = set(years[train_cut:val_cut])
-    test_years = set(years[val_cut:])
-
-    train = df_main[df_main["year"].isin(train_years)].copy()
-    val = df_main[df_main["year"].isin(val_years)].copy()
-    test_main = df_main[df_main["year"].isin(test_years)].copy()
-
-    print(f"Training set: {len(train)} records")
-    print(f"Validation set: {len(val)} records")
-    print(f"Main Test set: {len(test_main)} records")
-    print(f"Holdout Test set: {len(df_holdout)} records")
+    print(f"Training set: {len(train)} records (years {min(train_years)}-{max(train_years)})")
+    print(f"Holdout set: {len(df_holdout)} records (years {min(holdout_years)}-{max(holdout_years)})")
 
     x_train = train[PREDICTOR_COLUMNS]
     y_train = train["bloom_doy"]
-    x_val = val[PREDICTOR_COLUMNS]
-    y_val = val["bloom_doy"]
-    x_test = test_main[PREDICTOR_COLUMNS]
-    y_test = test_main["bloom_doy"]
     x_holdout = df_holdout[PREDICTOR_COLUMNS]
     y_holdout = df_holdout["bloom_doy"]
 
@@ -172,9 +134,7 @@ def main():
     median_model.fit(x_train, y_train)
 
     evaluate(median_model, x_train, y_train, "Median Train")
-    evaluate(median_model, x_val, y_val, "Median Validation")
-    evaluate(median_model, x_test, y_test, "Median Main Test")
-    evaluate(median_model, x_holdout, y_holdout, "Median Holdout")
+    evaluate(median_model, x_holdout, y_holdout, "Median Holdout (Last 10 Years)")
 
     lower_model = build_pipeline(
         GradientBoostingRegressor(loss="quantile", alpha=LOWER_ALPHA, **base_params)
@@ -185,6 +145,26 @@ def main():
 
     lower_model.fit(x_train, y_train)
     upper_model.fit(x_train, y_train)
+
+    if not df_holdout.empty:
+        holdout_median = median_model.predict(x_holdout)
+        holdout_lower_raw = lower_model.predict(x_holdout)
+        holdout_upper_raw = upper_model.predict(x_holdout)
+
+        holdout_lower = np.minimum(holdout_lower_raw, holdout_upper_raw)
+        holdout_upper = np.maximum(holdout_lower_raw, holdout_upper_raw)
+        holdout_median = np.clip(holdout_median, holdout_lower, holdout_upper)
+
+        holdout_output = df_holdout[["location", "year", "bloom_doy"]].copy()
+        holdout_output["predicted_doy"] = np.round(holdout_median, 1)
+        holdout_output["90_pi_lower"] = np.round(holdout_lower, 1)
+        holdout_output["90_pi_upper"] = np.round(holdout_upper, 1)
+        holdout_output["abs_error_days"] = (holdout_output["predicted_doy"] - holdout_output["bloom_doy"]).abs().round(1)
+        holdout_output["model_name"] = "gradient_boosting_quantile"
+        holdout_output = holdout_output.rename(columns={"bloom_doy": "actual_bloom_doy"})
+        os.makedirs(os.path.dirname(OUTPUT_HOLDOUT), exist_ok=True)
+        holdout_output.to_csv(OUTPUT_HOLDOUT, index=False)
+        print(f"Holdout predictions saved to: {OUTPUT_HOLDOUT}")
 
     print("\n--- Generating 2026 Predictions ---")
     df_2026 = features_df[features_df["is_future"] == True].copy()
@@ -229,6 +209,7 @@ def main():
 
     print(final_predictions.to_string(index=False))
 
+    os.makedirs(os.path.dirname(OUTPUT_PREDICTIONS), exist_ok=True)
     final_predictions.to_csv(OUTPUT_PREDICTIONS, index=False)
     print(f"\nFinal predictions saved to: {OUTPUT_PREDICTIONS}")
 

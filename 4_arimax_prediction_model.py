@@ -10,6 +10,9 @@ from statsmodels.tsa.statespace.sarimax import SARIMAX
 from phenology_config import (
 	MODEL_FEATURES_FILE,
 	MODEL_OUTPUT_DIR,
+	HOLDOUT_OUTPUT_DIR,
+	PREDICTIONS_OUTPUT_DIR,
+	MIN_MODEL_YEAR,
 	TARGET_YEAR,
 	TARGET_PREDICTION_LOCATIONS,
 	normalize_location,
@@ -20,7 +23,8 @@ from phenology_config import (
 # 1. CONFIGURATION
 # ==========================================
 FEATURES_FILE = MODEL_FEATURES_FILE
-HOLDOUT_LAST_N_YEARS = 2
+HOLDOUT_LAST_N_YEARS = 10
+MIN_YEAR = MIN_MODEL_YEAR
 
 EXOG_COLUMNS = [
 	"max_tmax_early_spring",
@@ -28,12 +32,12 @@ EXOG_COLUMNS = [
 ]
 
 OUTPUT_PREDICTIONS_FILE = os.path.join(
-	MODEL_OUTPUT_DIR,
-	f"final_{TARGET_YEAR}_arimax_predictions.csv",
+	PREDICTIONS_OUTPUT_DIR,
+	f"final_{TARGET_YEAR}_predictions_arimax.csv",
 )
 OUTPUT_HOLDOUT_FILE = os.path.join(
-	MODEL_OUTPUT_DIR,
-	"arimax_holdout_last2y.csv",
+	HOLDOUT_OUTPUT_DIR,
+	f"holdout_last{HOLDOUT_LAST_N_YEARS}y_arimax.csv",
 )
 OUTPUT_MODEL_SUMMARY_FILE = os.path.join(
 	MODEL_OUTPUT_DIR,
@@ -122,7 +126,11 @@ def main():
 	if missing:
 		raise ValueError(f"Missing required columns in features: {missing}")
 
-	historical = df[(df["is_future"] == False) & (df["location"].isin(TARGET_PREDICTION_LOCATIONS))].copy()
+	historical = df[
+		(df["is_future"] == False)
+		& (df["location"].isin(TARGET_PREDICTION_LOCATIONS))
+		& (df["year"] >= MIN_YEAR)
+	].copy()
 	future = df[(df["is_future"] == True) & (df["location"].isin(TARGET_PREDICTION_LOCATIONS))].copy()
 
 	historical = historical.dropna(subset=["bloom_doy"] + EXOG_COLUMNS)
@@ -133,7 +141,10 @@ def main():
 
 	max_year = int(historical["year"].max())
 	holdout_start_year = max_year - HOLDOUT_LAST_N_YEARS + 1
-	print(f"Using years < {holdout_start_year} for training and years >= {holdout_start_year} as holdout.")
+	print(
+		f"Using years < {holdout_start_year} for training and years >= {holdout_start_year} "
+		f"as last-{HOLDOUT_LAST_N_YEARS}-years holdout."
+	)
 
 	holdout_records = []
 	pred_records = []
@@ -247,13 +258,15 @@ def main():
 		)
 
 	print("3. Saving outputs...")
-	os.makedirs(MODEL_OUTPUT_DIR, exist_ok=True)
+	os.makedirs(HOLDOUT_OUTPUT_DIR, exist_ok=True)
+	os.makedirs(PREDICTIONS_OUTPUT_DIR, exist_ok=True)
 
 	holdout_df = pd.concat(holdout_records, ignore_index=True) if holdout_records else pd.DataFrame()
 	pred_df = pd.concat(pred_records, ignore_index=True) if pred_records else pd.DataFrame()
 	model_summary_df = pd.DataFrame(model_summary_records)
 
 	if not holdout_df.empty:
+		holdout_df["actual_bloom_doy"] = holdout_df["bloom_doy"].round(1)
 		holdout_df["predicted_bloom_date"] = holdout_df.apply(
 			lambda r: doy_to_date(r["year"], r["predicted_doy"]), axis=1
 		)
@@ -266,6 +279,23 @@ def main():
 		holdout_df["pi90_upper_date"] = holdout_df.apply(
 			lambda r: doy_to_date(r["year"], r["pi90_upper"]), axis=1
 		)
+		holdout_df["model_name"] = "arimax"
+		holdout_df = holdout_df[
+			[
+				"location",
+				"year",
+				"actual_bloom_doy",
+				"predicted_doy",
+				"pi90_lower",
+				"pi90_upper",
+				"abs_error_days",
+				"model_name",
+				"observed_bloom_date",
+				"predicted_bloom_date",
+				"pi90_lower_date",
+				"pi90_upper_date",
+			]
+		]
 		holdout_df.to_csv(OUTPUT_HOLDOUT_FILE, index=False)
 		overall_mae = holdout_df["abs_error_days"].mean()
 		print(f"Holdout MAE (last {HOLDOUT_LAST_N_YEARS} years): {overall_mae:.2f} days over {len(holdout_df)} rows")
@@ -273,6 +303,7 @@ def main():
 		print("No holdout predictions produced.")
 
 	if not pred_df.empty:
+		pred_df["predicted_doy"] = pred_df["predicted_doy"].round(1)
 		pred_df["predicted_date"] = pred_df.apply(
 			lambda r: doy_to_date(r["year"], r["predicted_doy"]), axis=1
 		)
@@ -282,8 +313,22 @@ def main():
 		pred_df["pi90_upper_date"] = pred_df.apply(
 			lambda r: doy_to_date(r["year"], r["pi90_upper"]), axis=1
 		)
+		pred_df = pred_df[
+			[
+				"location",
+				"year",
+				"predicted_date",
+				"predicted_doy",
+				"pi90_lower",
+				"pi90_upper",
+				"interval_halfwidth_days",
+				"model_type",
+				"pi90_lower_date",
+				"pi90_upper_date",
+			]
+		]
 		pred_df.to_csv(OUTPUT_PREDICTIONS_FILE, index=False)
-		print("2026 ARIMAX predictions:")
+		print(f"{TARGET_YEAR} ARIMAX predictions:")
 		print(pred_df.to_string(index=False))
 	else:
 		print("No future predictions produced for target locations.")
