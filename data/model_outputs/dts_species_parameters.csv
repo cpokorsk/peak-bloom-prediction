@@ -1,4 +1,0 @@
-species,a_rest,b_rest,a_flower,b_flower,rest_threshold,flower_threshold,calibration_mae_days,calibration_event_count
-Prunus avium,18.5,4500.0,20.0,5000.0,70.0,1468.4111681806767,5.880952380952381,42
-Prunus x jamasakura,18.5,4500.0,20.0,5000.0,35.0,1961.042551619706,6.7317073170731705,41
-Prunus x yedoensis,18.5,4500.0,20.0,5000.0,45.0,1751.8716627184658,7.285714285714286,42

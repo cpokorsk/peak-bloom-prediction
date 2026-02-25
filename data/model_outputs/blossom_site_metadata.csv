@@ -1,6 +1,0 @@
-location,country_code,species,lat,long,alt,first_year,last_year,observation_count,source_files
-vancouver,CA,Prunus x yedoensis,49.2237,-123.1636,24.0,2022,2025,4,vancouver.csv
-liestal,CH,Prunus avium,47.4814,7.730519,350.0,1894,2025,132,liestal.csv
-kyoto,JP,Prunus x jamasakura,35.0119831,135.6761135,44.0,812,2025,837,kyoto.csv
-newyorkcity,US,Prunus x yedoensis,40.7304,-73.99809,8.5,2024,2025,2,nyc.csv
-washingtondc,US,Prunus x yedoensis,38.8853496,-77.0386278,0.0,1921,2025,105,washingtondc.csv

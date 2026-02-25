@@ -1,6 +1,6 @@
 location,predicted_date,predicted_doy,90_ci_lower,90_ci_upper,interval_halfwidth_days
-kyoto,Apr 07,97.6,88.8,106.4,8.8
-liestal,Apr 15,105.2,96.3,114.1,8.9
-newyorkcity,Apr 12,102.6,93.6,111.6,9.0
-vancouver,Apr 12,102.0,92.7,111.3,9.3
-washingtondc,Apr 07,97.5,88.7,106.4,8.9
+kyoto,Apr 08,98.1,88.6,107.5,9.5
+liestal,Apr 16,106.0,96.4,115.5,9.5
+newyorkcity,Apr 13,103.6,94.0,113.1,9.5
+vancouver,Apr 14,104.4,94.6,114.2,9.8
+washingtondc,Apr 08,98.8,89.4,108.3,9.4

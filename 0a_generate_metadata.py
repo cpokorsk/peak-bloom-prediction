@@ -116,6 +116,7 @@ def generate_metadata():
         metadata_df['first_date'] = pd.to_datetime(metadata_df['first_date'], errors='coerce').dt.date
         metadata_df['last_date'] = pd.to_datetime(metadata_df['last_date'], errors='coerce').dt.date
         metadata_df['source_file'] = metadata_df['source_file'].astype(str).str.strip()
+        os.makedirs(os.path.dirname(METADATA_OUTPUT_FILE), exist_ok=True)
         metadata_df.to_csv(METADATA_OUTPUT_FILE, index=False)
 
         missing_source = int((metadata_df['source_file'] == "").sum())

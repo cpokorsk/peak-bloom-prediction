@@ -173,6 +173,7 @@ def forecast_2026_climate():
     final_df[numeric_cols] = final_df[numeric_cols].round(3)
     
     print(f"\n4. Saving Projected Climate prediction window to {OUTPUT_FORECAST_FILE}...")
+    os.makedirs(os.path.dirname(OUTPUT_FORECAST_FILE), exist_ok=True)
     final_df.to_csv(OUTPUT_FORECAST_FILE, index=False)
     
     print("\n--- 2026 Climate Forecasting Complete ---")

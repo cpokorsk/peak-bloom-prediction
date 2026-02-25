@@ -1,4 +1,0 @@
-base_model,coefficient,weight_percent
-pred_linear_ols,0.269749233806927,45.3
-pred_bayesian_ridge,0.15711405036945283,26.4
-pred_arimax,0.16827770161102532,28.3
