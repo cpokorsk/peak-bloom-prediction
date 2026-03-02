@@ -171,7 +171,7 @@ window.Quarto = {
 <p>The timing of spring phenological events, particularly the peak bloom of cherry blossoms, serves as a sensitive indicator of local climate change and interannual weather variability. Accurate forecasts of these events are essential for cultural, economic, and scientific purposes. This study presents a reproducible forecasting pipeline designed to predict the 2026 peak cherry blossom bloom, reported as both day-of-year (DOY) and calendar date, across five geographically diverse locations.</p>
 <p>The primary biological hypothesis posits that bloom timing is mainly determined by late-winter and early-spring temperatures, with additional influences from precipitation, winter chill, and species genetics. To enhance the accuracy of climate data, temperature values for each site are adjusted according to the altitude difference between the meteorological station and the blossom location. Feature engineering incorporates biologically meaningful climate summaries, including early-spring temperature statistics (mean and maximum daily temperatures), cumulative pre-bloom precipitation, and chill-day variables that quantify cold exposure required to break endodormancy. Species and continental indicators are also included to account for systematic differences, thereby supporting reliable predictions under changing climate conditions.</p>
 <p>Given the inherent model risk in ecological forecasting, we tested a multi-model ensemble integrating several algorithm types. Linear models (Ordinary Least Squares, Ridge, Lasso, Bayesian Ridge, and a weighted linear model) provided interpretable baselines and broad trend identification. Non-linear methods (Gradient Boosting Quantile Regression and Random Forests) and time-series models (ARIMAX) were also evaluated, but these underperformed according to MAE, RMSE, and <span class="math inline">\(R^2\)</span> metrics. Process-based phenological models were used to impose biological constraints. Ultimately, the weighted linear model and regularized linear models were emphasized, as they consistently outperformed non-linear and time-series approaches.</p>
-<p>Since no single model performs best everywhere, we use block-based cross-validation for evaluation. For the final holdout, we use the most recent 20 years as an unseen test set. Base models are ranked by Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and <span class="math inline">\(R^2\)</span>. Only the time-weighted linear model (WLM), OLS, Ridge, Bayesian Ridge, and Lasso are used in the final stacked ensemble, which is combined by a RidgeCV meta-learner trained exclusively on out-of-sample predictions.</p>
+<p>Since no single model performs best everywhere, we use block-based cross-validation for evaluation. For the final holdout, we use the most recent 10 years as an unseen test set. Base models are ranked by Mean Absolute Error (MAE), Root Mean Square Error (RMSE), and <span class="math inline">\(R^2\)</span>. Only the time-weighted linear model (WLM), OLS, Ridge, Bayesian Ridge, and Lasso are used in the final stacked ensemble, which is combined by a RidgeCV meta-learner trained exclusively on out-of-sample predictions.</p>
 <p>To support decision-making, point forecasts are provided with statistically calibrated prediction intervals. We analyze residuals from holdout predictions to estimate empirical error quantiles and generate reliable bounds for each location. The entire framework follows open-science principles. Implemented as a Quarto document, the pipeline installs dependencies, trains the ensemble, validates outputs, and renders final prediction tables, allowing independent reviewers to easily reproduce the 2026 results.</p>
 </section>
 <section id="overview" class="level2">
@@ -209,7 +209,7 @@ window.Quarto = {
 </section>
 <section id="setup" class="level2">
 <h2 class="anchored" data-anchor-id="setup">1) Setup</h2>
-<div id="a74ef8ef" class="cell" data-execution_count="2">
+<div id="996e283b" class="cell" data-execution_count="2">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pathlib <span class="im">import</span> Path</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> subprocess</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>
@@ -221,7 +221,7 @@ window.Quarto = {
 </section>
 <section id="define-pipeline-steps" class="level2">
 <h2 class="anchored" data-anchor-id="define-pipeline-steps">2) Define Pipeline Steps</h2>
-<div id="e3da0c5c" class="cell" data-execution_count="3">
+<div id="9007c5ec" class="cell" data-execution_count="3">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pipeline_steps <span class="op">=</span> [</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    <span class="st">"0a_generate_metadata.py"</span>,</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"0b_generate_blossom_site_metadata.py"</span>,</span>
@@ -257,9 +257,9 @@ window.Quarto = {
 </section>
 <section id="check-key-outputs" class="level2">
 <h2 class="anchored" data-anchor-id="check-key-outputs">4) Check Key Outputs</h2>
-<div id="7382e895" class="cell" data-message="false" data-execution_count="5">
+<div id="444c321a" class="cell" data-message="false" data-execution_count="5">
 <div class="cell-output cell-output-stdout">
-<pre><code>Config: USE_CV_FOLDS=False, HOLDOUT_LAST_N_YEARS=20
+<pre><code>Config: USE_CV_FOLDS=False, HOLDOUT_LAST_N_YEARS=10
 
 Checking 7 pipeline output files:
 </code></pre>
@@ -331,7 +331,7 @@ Checking 7 pipeline output files:
 <h2 class="anchored" data-anchor-id="model-selection-results">5) Model Selection Results</h2>
 <section id="all-model-performance-rankings" class="level3">
 <h3 class="anchored" data-anchor-id="all-model-performance-rankings">All Model Performance Rankings</h3>
-<div id="b603678d" class="cell" data-message="false" data-execution_count="6">
+<div id="d4a6d5c1" class="cell" data-message="false" data-execution_count="6">
 <div class="cell-output cell-output-display" data-execution_count="6">
 <div>
 
@@ -352,91 +352,91 @@ Checking 7 pipeline output files:
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>weighted_lm</td>
-<td>64</td>
-<td>4.2875</td>
-<td>4.9739</td>
-<td>0.4970</td>
+<td>35</td>
+<td>4.7457</td>
+<td>5.4250</td>
+<td>0.1738</td>
 <td>1.000000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>linear_ols</td>
-<td>64</td>
-<td>4.4688</td>
-<td>5.3027</td>
-<td>0.4283</td>
+<td>35</td>
+<td>4.9714</td>
+<td>5.8124</td>
+<td>0.0516</td>
 <td>2.000000</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>ridge</td>
-<td>64</td>
-<td>4.6266</td>
-<td>5.5408</td>
-<td>0.3758</td>
+<td>bayesian_ridge</td>
+<td>35</td>
+<td>5.1143</td>
+<td>6.1115</td>
+<td>-0.0485</td>
 <td>3.000000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>bayesian_ridge</td>
-<td>64</td>
-<td>4.6547</td>
-<td>5.5753</td>
-<td>0.3680</td>
-<td>4.333333</td>
+<td>ridge</td>
+<td>35</td>
+<td>5.1229</td>
+<td>6.1137</td>
+<td>-0.0493</td>
+<td>4.000000</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>lasso</td>
-<td>64</td>
-<td>4.8562</td>
-<td>5.8565</td>
-<td>0.3027</td>
-<td>5.333333</td>
+<td>35</td>
+<td>5.4971</td>
+<td>6.6425</td>
+<td>-0.2387</td>
+<td>5.000000</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">5</th>
 <td>random_forest</td>
-<td>64</td>
-<td>5.4859</td>
-<td>6.4914</td>
-<td>0.1433</td>
-<td>6.333333</td>
+<td>35</td>
+<td>6.0057</td>
+<td>6.9870</td>
+<td>-0.3705</td>
+<td>6.000000</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">6</th>
-<td>process_based_thermal</td>
-<td>27</td>
-<td>4.6296</td>
-<td>11.0437</td>
-<td>-1.0059</td>
+<td>arimax</td>
+<td>35</td>
+<td>7.1029</td>
+<td>8.7006</td>
+<td>-1.1252</td>
 <td>7.333333</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">7</th>
-<td>arimax</td>
-<td>64</td>
-<td>6.1047</td>
-<td>7.8422</td>
-<td>-0.2503</td>
-<td>7.333333</td>
+<td>process_based_thermal</td>
+<td>18</td>
+<td>6.2778</td>
+<td>10.0194</td>
+<td>-2.1789</td>
+<td>8.333333</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">8</th>
 <td>gradient_boosting_quantile</td>
-<td>64</td>
-<td>6.9437</td>
-<td>8.7522</td>
-<td>-0.5574</td>
+<td>35</td>
+<td>7.1600</td>
+<td>8.7586</td>
+<td>-1.1536</td>
 <td>8.333333</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">9</th>
 <td>dts</td>
-<td>66</td>
-<td>9.5909</td>
-<td>15.5928</td>
-<td>-3.9993</td>
+<td>36</td>
+<td>10.3889</td>
+<td>16.5328</td>
+<td>-6.6472</td>
 <td>10.000000</td>
 </tr>
 </tbody>
@@ -449,7 +449,7 @@ Checking 7 pipeline output files:
 <section id="recommended-models-for-ensemble" class="level3">
 <h3 class="anchored" data-anchor-id="recommended-models-for-ensemble">Recommended Models for Ensemble</h3>
 <p>The top 5 models by composite rank score are selected for the stacked ensemble:</p>
-<div id="33554247" class="cell" data-message="false" data-execution_count="7">
+<div id="fa4a251f" class="cell" data-message="false" data-execution_count="7">
 <div class="cell-output cell-output-display" data-execution_count="7">
 <div>
 
@@ -468,37 +468,37 @@ Checking 7 pipeline output files:
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>weighted_lm</td>
-<td>4.2875</td>
-<td>4.9739</td>
-<td>0.4970</td>
+<td>4.7457</td>
+<td>5.4250</td>
+<td>0.1738</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>linear_ols</td>
-<td>4.4688</td>
-<td>5.3027</td>
-<td>0.4283</td>
+<td>4.9714</td>
+<td>5.8124</td>
+<td>0.0516</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>ridge</td>
-<td>4.6266</td>
-<td>5.5408</td>
-<td>0.3758</td>
+<td>bayesian_ridge</td>
+<td>5.1143</td>
+<td>6.1115</td>
+<td>-0.0485</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>bayesian_ridge</td>
-<td>4.6547</td>
-<td>5.5753</td>
-<td>0.3680</td>
+<td>ridge</td>
+<td>5.1229</td>
+<td>6.1137</td>
+<td>-0.0493</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>lasso</td>
-<td>4.8562</td>
-<td>5.8565</td>
-<td>0.3027</td>
+<td>5.4971</td>
+<td>6.6425</td>
+<td>-0.2387</td>
 </tr>
 </tbody>
 </table>
@@ -512,7 +512,7 @@ Checking 7 pipeline output files:
 <h2 class="anchored" data-anchor-id="stacked-ensemble-performance">6) Stacked Ensemble Performance</h2>
 <section id="ensemble-metrics" class="level3">
 <h3 class="anchored" data-anchor-id="ensemble-metrics">Ensemble Metrics</h3>
-<div id="10e5ceca" class="cell" data-execution_count="8">
+<div id="ca8352aa" class="cell" data-execution_count="8">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>ensemble_metrics_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/stacked_ensemble_model_metrics.csv"</span></span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> ensemble_metrics_path.exists():</span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Ensemble metrics not found: </span><span class="sc">{</span>ensemble_metrics_path<span class="sc">}</span><span class="ss">"</span>)</span>
@@ -528,7 +528,7 @@ Checking 7 pipeline output files:
 <section id="meta-model-weights" class="level3">
 <h3 class="anchored" data-anchor-id="meta-model-weights">Meta-Model Weights</h3>
 <p>The stacked ensemble learns optimal weights for each base model using Ridge regression:</p>
-<div id="16c3e313" class="cell" data-execution_count="9">
+<div id="423ad9be" class="cell" data-execution_count="9">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>weights_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/stacked_ensemble_meta_model_weights.csv"</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> weights_path.exists():</span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Expected weights file not found: </span><span class="sc">{</span>weights_path<span class="sc">}</span><span class="ss">"</span>)</span>
@@ -552,32 +552,32 @@ Checking 7 pipeline output files:
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>pred_weighted_lm</td>
-<td>0.315251</td>
-<td>36.4</td>
+<td>0.448940</td>
+<td>53.3</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>pred_linear_ols</td>
-<td>0.264991</td>
-<td>30.6</td>
+<td>0.372911</td>
+<td>44.2</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
-<td>pred_ridge</td>
-<td>0.139178</td>
-<td>16.1</td>
+<td>pred_bayesian_ridge</td>
+<td>0.025491</td>
+<td>3.0</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
-<td>pred_bayesian_ridge</td>
-<td>0.127086</td>
-<td>14.7</td>
+<td>pred_ridge</td>
+<td>0.030848</td>
+<td>3.7</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>pred_lasso</td>
-<td>0.019354</td>
-<td>2.2</td>
+<td>-0.035237</td>
+<td>-4.2</td>
 </tr>
 </tbody>
 </table>
@@ -591,7 +591,7 @@ Checking 7 pipeline output files:
 <h2 class="anchored" data-anchor-id="final-2026-predictions">7) Final 2026 Predictions</h2>
 <section id="full-prediction-output" class="level3">
 <h3 class="anchored" data-anchor-id="full-prediction-output">Full Prediction Output</h3>
-<div id="6ada9114" class="cell" data-execution_count="10">
+<div id="0ea0248f" class="cell" data-execution_count="10">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>final_path <span class="op">=</span> ROOT <span class="op">/</span> <span class="st">"data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv"</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> final_path.exists():</span>
 <span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(<span class="ss">f"Expected final predictions file not found: </span><span class="sc">{</span>final_path<span class="sc">}</span><span class="ss">"</span>)</span>
@@ -618,8 +618,8 @@ Checking 7 pipeline output files:
 <th data-quarto-table-cell-role="th">stacked_ensemble</th>
 <th data-quarto-table-cell-role="th">pred_weighted_lm</th>
 <th data-quarto-table-cell-role="th">pred_linear_ols</th>
-<th data-quarto-table-cell-role="th">pred_ridge</th>
 <th data-quarto-table-cell-role="th">pred_bayesian_ridge</th>
+<th data-quarto-table-cell-role="th">pred_ridge</th>
 <th data-quarto-table-cell-role="th">pred_lasso</th>
 </tr>
 </thead>
@@ -627,92 +627,92 @@ Checking 7 pipeline output files:
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>kyoto</td>
-<td>Apr 05</td>
-<td>95.2</td>
-<td>87.7</td>
-<td>102.7</td>
-<td>7.512814</td>
-<td>Mar 28</td>
-<td>Apr 12</td>
-<td>98.48</td>
-<td>95.218594</td>
-<td>97.1</td>
-<td>97.5</td>
+<td>Apr 02</td>
+<td>92.8</td>
+<td>86.3</td>
 <td>99.3</td>
-<td>99.6</td>
-<td>98.9</td>
+<td>6.486613</td>
+<td>Mar 27</td>
+<td>Apr 09</td>
+<td>98.20</td>
+<td>92.802614</td>
+<td>96.7</td>
+<td>97.3</td>
+<td>99.3</td>
+<td>99.1</td>
+<td>98.6</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>liestal</td>
-<td>Apr 07</td>
-<td>97.3</td>
-<td>89.8</td>
-<td>104.8</td>
-<td>7.512814</td>
-<td>Mar 30</td>
-<td>Apr 14</td>
-<td>103.00</td>
-<td>97.300222</td>
-<td>96.3</td>
-<td>97.8</td>
-<td>107.1</td>
-<td>107.7</td>
-<td>106.1</td>
+<td>Apr 03</td>
+<td>93.0</td>
+<td>86.5</td>
+<td>99.4</td>
+<td>6.486613</td>
+<td>Mar 27</td>
+<td>Apr 09</td>
+<td>102.50</td>
+<td>92.953485</td>
+<td>96.4</td>
+<td>97.6</td>
+<td>106.8</td>
+<td>106.3</td>
+<td>105.4</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>newyorkcity</td>
-<td>Apr 13</td>
-<td>103.0</td>
-<td>95.4</td>
-<td>110.5</td>
-<td>7.512814</td>
-<td>Apr 05</td>
-<td>Apr 20</td>
-<td>107.20</td>
-<td>102.954853</td>
-<td>106.1</td>
+<td>Apr 09</td>
+<td>99.7</td>
+<td>93.2</td>
 <td>106.2</td>
-<td>108.4</td>
-<td>108.9</td>
-<td>106.4</td>
+<td>6.486613</td>
+<td>Apr 03</td>
+<td>Apr 16</td>
+<td>106.38</td>
+<td>99.697068</td>
+<td>104.7</td>
+<td>105.5</td>
+<td>108.2</td>
+<td>107.8</td>
+<td>105.7</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
 <td>vancouver</td>
-<td>Apr 03</td>
+<td>Mar 30</td>
+<td>89.5</td>
+<td>83.0</td>
+<td>96.0</td>
+<td>6.486613</td>
+<td>Mar 24</td>
+<td>Apr 06</td>
+<td>97.36</td>
+<td>89.495903</td>
+<td>92.8</td>
 <td>93.2</td>
-<td>85.7</td>
+<td>100.3</td>
+<td>99.8</td>
 <td>100.7</td>
-<td>7.512814</td>
-<td>Mar 26</td>
-<td>Apr 10</td>
-<td>97.82</td>
-<td>93.221003</td>
-<td>92.9</td>
-<td>93.4</td>
-<td>100.5</td>
-<td>101.2</td>
-<td>101.1</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>washingtondc</td>
-<td>Apr 05</td>
-<td>95.3</td>
-<td>87.8</td>
-<td>102.9</td>
-<td>7.512814</td>
-<td>Mar 28</td>
-<td>Apr 12</td>
-<td>99.30</td>
-<td>95.339245</td>
-<td>96.4</td>
-<td>96.8</td>
-<td>101.1</td>
-<td>101.5</td>
+<td>Apr 02</td>
+<td>92.2</td>
+<td>85.7</td>
+<td>98.7</td>
+<td>6.486613</td>
+<td>Mar 26</td>
+<td>Apr 08</td>
+<td>98.90</td>
+<td>92.222817</td>
+<td>96.0</td>
+<td>96.5</td>
+<td>101.0</td>
 <td>100.7</td>
+<td>100.3</td>
 </tr>
 </tbody>
 </table>
@@ -723,7 +723,7 @@ Checking 7 pipeline output files:
 </section>
 <section id="submission-format" class="level3">
 <h3 class="anchored" data-anchor-id="submission-format">Submission Format</h3>
-<div id="dba541cc" class="cell" data-execution_count="11">
+<div id="f96bb486" class="cell" data-execution_count="11">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>final_pred[</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    [<span class="st">"location"</span>, <span class="st">"predicted_date"</span>, <span class="st">"predicted_doy"</span>, <span class="st">"90_pi_lower"</span>, <span class="st">"90_pi_upper"</span>]</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>].sort_values(<span class="st">"location"</span>).reset_index(drop<span class="op">=</span><span class="va">True</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
@@ -746,42 +746,42 @@ Checking 7 pipeline output files:
 <tr class="odd">
 <th data-quarto-table-cell-role="th">0</th>
 <td>kyoto</td>
-<td>Apr 05</td>
-<td>95.2</td>
-<td>87.7</td>
-<td>102.7</td>
+<td>Apr 02</td>
+<td>92.8</td>
+<td>86.3</td>
+<td>99.3</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">1</th>
 <td>liestal</td>
-<td>Apr 07</td>
-<td>97.3</td>
-<td>89.8</td>
-<td>104.8</td>
+<td>Apr 03</td>
+<td>93.0</td>
+<td>86.5</td>
+<td>99.4</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">2</th>
 <td>newyorkcity</td>
-<td>Apr 13</td>
-<td>103.0</td>
-<td>95.4</td>
-<td>110.5</td>
+<td>Apr 09</td>
+<td>99.7</td>
+<td>93.2</td>
+<td>106.2</td>
 </tr>
 <tr class="even">
 <th data-quarto-table-cell-role="th">3</th>
 <td>vancouver</td>
-<td>Apr 03</td>
-<td>93.2</td>
-<td>85.7</td>
-<td>100.7</td>
+<td>Mar 30</td>
+<td>89.5</td>
+<td>83.0</td>
+<td>96.0</td>
 </tr>
 <tr class="odd">
 <th data-quarto-table-cell-role="th">4</th>
 <td>washingtondc</td>
-<td>Apr 05</td>
-<td>95.3</td>
-<td>87.8</td>
-<td>102.9</td>
+<td>Apr 02</td>
+<td>92.2</td>
+<td>85.7</td>
+<td>98.7</td>
 </tr>
 </tbody>
 </table>
