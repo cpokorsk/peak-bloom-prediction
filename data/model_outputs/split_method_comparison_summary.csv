@@ -1,7 +1,0 @@
-split_method,train_n,test_n,train_mae,train_rmse,train_r2,test_mae,test_rmse,test_r2,generalization_gap_mae
-Last 20 years,136,62,4.39,5.452,0.588,4.705,5.659,0.275,0.315
-Last 10 years,166,32,4.301,5.291,0.58,5.248,6.309,-0.153,0.946
-Random 20% (stratified),159,39,4.356,5.323,0.561,4.742,5.924,0.656,0.386
-Historical vs Recent (2010+),145,53,4.346,5.376,0.585,4.868,5.869,0.28,0.522
-Year blocks (5-fold middle),159,39,4.566,5.532,0.577,3.765,4.9,0.652,-0.801
-LOLO (vancouver),195,3,4.337,5.308,0.609,10.888,12.262,-3.867,6.551

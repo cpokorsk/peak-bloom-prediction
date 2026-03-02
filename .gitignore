@@ -15,7 +15,17 @@
 build/
 pdfs/
 
+.old/
 .old/noaa/
+data/
+# Except for the NOAA and NPN Data folders
+!data/noaa/
+!data/npn/
+!data/blossoms/
+!data/metadata/
+!data/model_outputs/predictions/final_2026_predictions_stacked_ensemble.csv
+!data/model_outputs/stacked_ensemble_model_metrics.csv
+!data/model_outputs/stacked_ensemble_meta_model_weights.csv
 
 # LaTeX build artifacts
 *.aux

@@ -11,6 +11,7 @@ from phenology_config import (
     MODEL_OUTPUT_DIR,
     HOLDOUT_OUTPUT_DIR,
     PREDICTIONS_OUTPUT_DIR,
+    FIGURES_DIR,
     HOLDOUT_LAST_N_YEARS,
     TARGET_PREDICTION_LOCATIONS,
     USE_CV_FOLDS,
@@ -164,9 +165,9 @@ OUTPUT_ENSEMBLE = os.path.join(PREDICTIONS_OUTPUT_DIR, "final_2026_predictions_s
 OUTPUT_WEIGHTS = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_meta_model_weights.csv")
 OUTPUT_METRICS = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_model_metrics.csv")
 OUTPUT_OBS_PRED_FULL = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_observed_vs_predicted_full_available.csv")
-OUTPUT_OBS_EXP_SCATTER = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_observed_vs_expected_scatter_by_location.png")
-OUTPUT_OBS_EXP_TIMESERIES = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_observed_vs_expected_timeseries_by_location.png")
-OUTPUT_RESIDUALS = os.path.join(MODEL_OUTPUT_DIR, "stacked_ensemble_residuals_by_location.png")
+OUTPUT_OBS_EXP_SCATTER = os.path.join(FIGURES_DIR, "stacked_ensemble_observed_vs_expected_scatter_by_location.png")
+OUTPUT_OBS_EXP_TIMESERIES = os.path.join(FIGURES_DIR, "stacked_ensemble_observed_vs_expected_timeseries_by_location.png")
+OUTPUT_RESIDUALS = os.path.join(FIGURES_DIR, "stacked_ensemble_residuals_by_location.png")
 PI_ALPHA = 0.10
 
 
